@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ospitely — Assistente AI per i tuoi ospiti</title>
+  <meta name="description" content="Ospitely è l'assistente AI multilingue per gli ospiti della tua struttura ricettiva. Zero app da installare, risposte automatiche 24/7, segnalazioni dirette su WhatsApp." />
+
+  <!--
+    Completa il trucco iniziato in public/404.html: se GitHub Pages ha
+    reindirizzato qui salvando il percorso originale in sessionStorage,
+    lo ripristiniamo nella barra degli indirizzi PRIMA che React monti,
+    così l'ospite vede sempre ospitely.com/nome-struttura, mai un lampo
+    sulla home. Vedi ospitely-404-github-pages.html per la spiegazione
+    completa del meccanismo.
+  -->
+  <script>
+    (function () {
+      var percorsoSalvato = sessionStorage.getItem('ospitely_percorso_originale');
+      if (percorsoSalvato) {
+        sessionStorage.removeItem('ospitely_percorso_originale');
+        if (percorsoSalvato !== location.pathname + location.search + location.hash) {
+          history.replaceState(null, '', percorsoSalvato);
+        }
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
