@@ -1,0 +1,46 @@
+name: Deploy su GitHub Pages
+
+# Si attiva a ogni push sul branch main — builda il progetto Vite
+# e pubblica il risultato (cartella dist/) su GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # permette anche l'avvio manuale dalla tab Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica il codice
+        uses: actions/checkout@v4
+
+      - name: Configura Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installa le dipendenze
+        run: npm ci
+
+      - name: Build del progetto
+        run: npm run build
+        env:
+          # Variabili pubbliche necessarie in fase di build — vanno
+          # configurate come Repository Secrets in Settings → Secrets
+          # and variables → Actions (stessi valori del file .env locale,
+          # SOLO quelli con prefisso VITE_, mai le chiavi segrete server)
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_FUNCTIONS_URL: ${{ secrets.VITE_SUPABASE_FUNCTIONS_URL }}
+
+      - name: Prepara le pagine per il
