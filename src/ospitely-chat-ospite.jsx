@@ -25,12 +25,30 @@ const CHIAVE_DEVICE_ID = 'ospitely_device_id';
  * non la singola visita. Il limite dei 2 dispositivi è comunque
  * verificato per soggiorno lato server, non qui.
  */
+function leggiCookie(nome) {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${nome}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function scriviCookie(nome, valore) {
+  const unAnno = 60 * 60 * 24 * 365;
+  document.cookie = `${nome}=${encodeURIComponent(valore)}; max-age=${unAnno}; path=/; SameSite=Lax`;
+}
+
+/**
+ * Il device_id vive in DUE posti — localStorage e un cookie a lunga
+ * durata — perché alcuni browser (Safari/iOS in primis) cancellano il
+ * localStorage dei siti visitati raramente molto più aggressivamente
+ * dei cookie. Basta che UNO dei due sopravviva per riconoscere
+ * correttamente lo stesso dispositivo tra un accesso e l'altro.
+ */
 function recuperaOCreaDeviceId() {
-  let id = localStorage.getItem(CHIAVE_DEVICE_ID);
+  let id = localStorage.getItem(CHIAVE_DEVICE_ID) || leggiCookie(CHIAVE_DEVICE_ID);
   if (!id) {
     id = crypto.randomUUID();
-    localStorage.setItem(CHIAVE_DEVICE_ID, id);
   }
+  localStorage.setItem(CHIAVE_DEVICE_ID, id);
+  scriviCookie(CHIAVE_DEVICE_ID, id);
   return id;
 }
 
@@ -195,22 +213,25 @@ function SchermataCodice({ slug, deviceId, t, lingua, onCambiaLingua, onVerifica
   const [codice, setCodice] = useState('');
   const [caricamento, setCaricamento] = useState(false);
   const [errore, setErrore] = useState(null);
+  const [mostraContinuaComunque, setMostraContinuaComunque] = useState(false);
 
-  async function verifica() {
+  async function verifica(forza = false) {
     if (!codice.trim()) return;
     setCaricamento(true);
     setErrore(null);
+    setMostraContinuaComunque(false);
 
     try {
       const res = await fetch(URL_VERIFICA_SOGGIORNO, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
-        body: JSON.stringify({ slug, codice: codice.trim(), device_id: deviceId }),
+        body: JSON.stringify({ slug, codice: codice.trim(), device_id: deviceId, forza }),
       });
       const dati = await res.json();
 
       if (!res.ok) {
         setErrore(dati.errore ?? 'Codice non valido');
+        if (dati.codice_errore === 'LIMITE_DISPOSITIVI') setMostraContinuaComunque(true);
         setCaricamento(false);
         return;
       }
@@ -247,14 +268,25 @@ function SchermataCodice({ slug, deviceId, t, lingua, onCambiaLingua, onVerifica
           />
 
           {errore && (
-            <p className="mt-3 text-sm text-red-600 flex items-start gap-1.5">
-              <AlertCircle size={16} className="mt-0.5 shrink-0" /> {errore}
-            </p>
+            <div className="mt-3">
+              <p className="text-sm text-red-600 flex items-start gap-1.5">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" /> {errore}
+              </p>
+              {mostraContinuaComunque && (
+                <button
+                  type="button"
+                  onClick={() => verifica(true)}
+                  className="mt-2 text-sm font-medium text-[#1D5C56] underline underline-offset-2"
+                >
+                  Sono davvero io, continua comunque →
+                </button>
+              )}
+            </div>
           )}
 
           <button
             type="button"
-            onClick={verifica}
+            onClick={() => verifica()}
             disabled={caricamento || !codice.trim()}
             className="mt-5 w-full bg-[#D9653D] hover:bg-[#C2552F] disabled:bg-stone-300 text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-colors"
           >
