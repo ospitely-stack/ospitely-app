@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { slug, soggiorno_id, device_id, tipo, canale_scelto, testo } = await req.json();
+    const { slug, soggiorno_id, device_id, tipo, canale_scelto, testo, telefono_ospite } = await req.json();
 
     if (!slug || !soggiorno_id || !device_id || !tipo || !canale_scelto || !testo?.trim()) {
       return jsonResponse({ errore: 'Campi obbligatori mancanti' }, 400);
@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
       tipo,
       canale_scelto,
       testo: testo.trim(),
+      telefono_ospite: telefono_ospite?.trim() || null,
     });
 
     if (insertError) throw insertError;
