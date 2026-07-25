@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, AlertCircle, MessageCircleWarning, Phone, MessageCircle, X, Loader2, Globe } from 'lucide-react';
-import { rilevaLinguaInterfaccia, creaTraduttore, LINGUE_ETICHETTE } from './ospitely-i18n.js';
+import { Send, AlertCircle, MessageCircleWarning, Phone, MessageCircle, X, Loader2, Globe, Wifi, Clock, UtensilsCrossed, MapPin, ScrollText, MessageSquareText } from 'lucide-react';
+import { rilevaLinguaInterfaccia, creaTraduttore, LINGUE_ETICHETTE, LINGUE_RTL } from './ospitely-i18n.js';
 
 // ============================================================
 // OSPITELY — Interfaccia chat ospite
@@ -56,6 +56,99 @@ function chiaveSoggiorno(slug) {
   return `ospitely_soggiorno_${slug}`;
 }
 
+function chiaveProfilo(slug) {
+  return `ospitely_profilo_${slug}`;
+}
+
+const RISPOSTE_RAPIDE = [
+  { id: 'wifi', etichetta: 'WiFi', Icona: Wifi },
+  { id: 'orari', etichetta: 'Orari', Icona: Clock },
+  { id: 'doveMangiare', etichetta: 'Dove mangiare', Icona: UtensilsCrossed },
+  { id: 'puntiInteresse', etichetta: 'Punti di interesse', Icona: MapPin },
+  { id: 'contatti', etichetta: 'Contatti', Icona: Phone },
+  { id: 'regole', etichetta: 'Regole della casa', Icona: ScrollText },
+];
+
+// Risposte istantanee costruite dal profilo già scaricato al momento
+// della verifica del codice — nessuna chiamata a Claude, nessun
+// messaggio consumato dal tetto del soggiorno. Il testo libero scritto
+// dall'host viene tradotto in anticipo (quando l'host salva, non quando
+// l'ospite consulta) e salvato in profilo.traduzioni — qui peschiamo la
+// versione già pronta nella lingua selezionata, con l'italiano come
+// ripiego se quella lingua non è ancora stata tradotta (es. sezione
+// modificata da poco, traduzione non ancora arrivata).
+function testoLocalizzato(profilo, lingua, campo) {
+  if (lingua !== 'it' && profilo?.traduzioni?.[lingua]?.[campo] !== undefined) {
+    return profilo.traduzioni[lingua][campo];
+  }
+  return profilo?.[campo];
+}
+
+function costruisciRispostaRapida(id, profilo, lingua, t) {
+  if (!profilo) return t('infoNonDisponibile');
+
+  switch (id) {
+    case 'wifi': {
+      if (!profilo.wifi_nome_rete && !profilo.wifi_password) return t('infoNonDisponibile');
+      const noteUtenze = testoLocalizzato(profilo, lingua, 'note_utenze');
+      const righe = [`${t('etichettaRete')}: ${profilo.wifi_nome_rete || 'n/d'}`, `${t('etichettaPassword')}: ${profilo.wifi_password || 'n/d'}`];
+      if (noteUtenze) righe.push('', noteUtenze);
+      return righe.join('\n');
+    }
+    case 'orari': {
+      const righe = [`${t('etichettaCheckin')}: ${profilo.checkin_orario_da || 'n/d'} – ${profilo.checkin_orario_a || 'n/d'}`];
+      if (profilo.checkin_late_disponibile) righe.push(`${t('lateCheckinDisponibile')}${profilo.checkin_late_a_pagamento ? ' ' + t('aPagamento') : ''}`);
+      righe.push(`${t('etichettaCheckout')}: ${profilo.checkout_orario_a || 'n/d'}`);
+      if (profilo.checkout_late_disponibile) righe.push(`${t('lateCheckoutDisponibile')}${profilo.checkout_late_a_pagamento ? ' ' + t('aPagamento') : ''}`);
+      if (profilo.colazione_orario_da) {
+        righe.push('', `${t('etichettaColazione')}: ${profilo.colazione_orario_da} – ${profilo.colazione_orario_a || 'n/d'}`);
+        if (profilo.colazione_dove) righe.push(`${t('etichettaDove')}: ${profilo.colazione_dove.replace(/_/g, ' ')}`);
+      }
+      if (profilo.orario_silenzio) righe.push('', `${t('etichettaSilenzio')}: ${testoLocalizzato(profilo, lingua, 'orario_silenzio')}`);
+      return righe.join('\n');
+    }
+    case 'doveMangiare': {
+      const consigliLocalizzati = lingua !== 'it' && profilo.traduzioni?.[lingua]?.consigli_locali
+        ? profilo.traduzioni[lingua].consigli_locali
+        : (profilo.consigli_locali || []);
+      const voci = consigliLocalizzati.filter((c) => c.categoria === 'ristorante' || c.categoria === 'bar');
+      if (!voci.length) return t('nessunConsiglioMangiare');
+      return voci.map((v) => `• ${v.nome}${v.nota ? ' — ' + v.nota : ''}`).join('\n');
+    }
+    case 'puntiInteresse': {
+      const consigliLocalizzati = lingua !== 'it' && profilo.traduzioni?.[lingua]?.consigli_locali
+        ? profilo.traduzioni[lingua].consigli_locali
+        : (profilo.consigli_locali || []);
+      const voci = consigliLocalizzati.filter((c) => c.categoria === 'attrazione');
+      if (!voci.length) return t('nessunPuntoInteresse');
+      return voci.map((v) => `• ${v.nome}${v.nota ? ' — ' + v.nota : ''}`).join('\n');
+    }
+    case 'contatti': {
+      const righe = [];
+      if (profilo.whatsapp_host) righe.push(`${t('etichettaWhatsappHost')}: ${profilo.whatsapp_host}`);
+      if (profilo.numero_emergenze) righe.push(`${t('etichettaEmergenze')}: ${profilo.numero_emergenze}`);
+      for (const c of profilo.contatti_extra || []) righe.push(`${c.nome}: ${c.contatto}`);
+      return righe.length ? righe.join('\n') : t('nessunContatto');
+    }
+    case 'regole': {
+      const righe = [];
+      const silenzio = testoLocalizzato(profilo, lingua, 'orario_silenzio');
+      const fumo = testoLocalizzato(profilo, lingua, 'policy_fumo');
+      const animali = testoLocalizzato(profilo, lingua, 'policy_animali');
+      const ospitiEsterni = testoLocalizzato(profilo, lingua, 'policy_ospiti_esterni');
+      const altre = testoLocalizzato(profilo, lingua, 'altre_regole');
+      if (silenzio) righe.push(`${t('etichettaSilenzio')}: ${silenzio}`);
+      if (fumo) righe.push(`${t('etichettaFumo')}: ${fumo}`);
+      if (animali) righe.push(`${t('etichettaAnimali')}: ${animali}`);
+      if (ospitiEsterni) righe.push(`${t('etichettaOspitiEsterni')}: ${ospitiEsterni}`);
+      if (altre) righe.push(altre);
+      return righe.length ? righe.join('\n') : t('nessunaRegola');
+    }
+    default:
+      return '';
+  }
+}
+
 // Selettore lingua manuale — sovrascrive il riconoscimento automatico
 // dal browser, per chi vuole semplicemente un'altra lingua.
 function SelettoreLingua({ lingua, onCambia }) {
@@ -109,9 +202,18 @@ export default function ChatOspite({ slug }) {
   const deviceId = useRef(recuperaOCreaDeviceId()).current;
   const [lingua, setLingua] = useState(() => rilevaLinguaInterfaccia());
   const t = creaTraduttore(lingua);
-  const [mostraSelettoreLingua, setMostraSelettoreLingua] = useState(false);
 
   const [soggiornoId, setSoggiornoId] = useState(() => localStorage.getItem(chiaveSoggiorno(slug)));
+  const [profilo, setProfilo] = useState(() => {
+    try {
+      const salvato = localStorage.getItem(chiaveProfilo(slug));
+      return salvato ? JSON.parse(salvato) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [vista, setVista] = useState('home'); // 'home' (compatta, risposte rapide) | 'chat' (a tutto schermo)
+  const [rispostaRapidaAperta, setRispostaRapidaAperta] = useState(null);
   const [messaggi, setMessaggi] = useState([]);
   const [conversationId, setConversationId] = useState(null);
   const [limiteRaggiunto, setLimiteRaggiunto] = useState(false);
@@ -127,70 +229,129 @@ export default function ChatOspite({ slug }) {
         t={t}
         lingua={lingua}
         onCambiaLingua={setLingua}
-        onVerificato={(id) => {
+        onVerificato={(id, profiloRicevuto) => {
           localStorage.setItem(chiaveSoggiorno(slug), id);
+          if (profiloRicevuto) {
+            try { localStorage.setItem(chiaveProfilo(slug), JSON.stringify(profiloRicevuto)); } catch { /* storage pieno, non grave */ }
+          }
+          setProfilo(profiloRicevuto ?? null);
           setSoggiornoId(id);
         }}
       />
     );
   }
 
+  function apriSegnalazione(testoPrecompilato = '') {
+    setContattoSuggerito(null);
+    setMostraSegnalazione({ testoPrecompilato });
+  }
+
   return (
-    <div className="max-w-md mx-auto flex flex-col h-screen bg-[#FBF7F1]">
-      <header className="relative bg-gradient-to-br from-[#0E3D3C] to-[#1D5C56] px-5 pt-5 pb-4 overflow-hidden">
-        <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/5" />
-        <div className="absolute -right-2 top-6 w-16 h-16 rounded-full bg-[#E8A24A]/20" />
+    <div dir={LINGUE_RTL.includes(lingua) ? 'rtl' : 'ltr'} className="max-w-md mx-auto flex flex-col min-h-screen bg-[#FBF7F1]">
+      <header className={`relative bg-gradient-to-br from-[#0E3D3C] to-[#1D5C56] px-5 pb-4 ${vista === 'home' ? 'pt-6' : 'pt-5'}`}>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/5" />
+          <div className="absolute -right-2 top-6 w-16 h-16 rounded-full bg-[#E8A24A]/20" />
+        </div>
         <div className="relative flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-medium tracking-[0.16em] text-teal-100/80 uppercase">Il tuo assistente</p>
+            <p className="text-[11px] font-medium tracking-[0.16em] text-teal-100/80 uppercase">
+              {vista === 'home' ? 'Ospitely' : 'Il tuo assistente'}
+            </p>
             <h1 className="font-display text-xl text-white mt-0.5">{nomeLeggibileDaSlug(slug)}</h1>
           </div>
           <SelettoreLingua lingua={lingua} onCambia={setLingua} />
         </div>
       </header>
 
-      <ListaMessaggi
-        messaggi={messaggi}
-        limiteRaggiunto={limiteRaggiunto}
-        contattoSuggerito={contattoSuggerito}
-        t={t}
-        onApriSegnalazione={(domanda) => {
-          setContattoSuggerito(null);
-          setMostraSegnalazione({ testoPrecompilato: domanda ?? '' });
-        }}
-      />
+      {vista === 'home' ? (
+        <div className="flex-1 px-5 pt-5 pb-6">
+          <p className="text-sm text-stone-500 mb-4">{t('messaggioIniziale')}</p>
 
-      <BarraInput
-        slug={slug}
-        deviceId={deviceId}
-        soggiornoId={soggiornoId}
-        conversationId={conversationId}
-        disabilitato={limiteRaggiunto}
-        t={t}
-        onSoggiornoNonValido={() => {
-          // Revocato o scaduto durante la chat: si riparte dal codice
-          localStorage.removeItem(chiaveSoggiorno(slug));
-          setSoggiornoId(null);
-        }}
-        onLimiteRaggiunto={() => setLimiteRaggiunto(true)}
-        onNuovoMessaggio={(msgOspite, risposta, nuovoConversationId, richiedeContatto) => {
-          setConversationId(nuovoConversationId);
-          setMessaggi((m) => [
-            ...m,
-            { ruolo: 'ospite', testo: msgOspite },
-            { ruolo: 'assistente', testo: risposta },
-          ]);
-          setContattoSuggerito(richiedeContatto ? { domanda: msgOspite } : null);
-        }}
-      />
+          <div className="grid grid-cols-2 gap-2.5 mb-4">
+            {RISPOSTE_RAPIDE.map(({ id, etichetta, Icona }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setRispostaRapidaAperta(id)}
+                className="flex items-center gap-2 bg-white border border-stone-200 rounded-2xl px-3.5 py-3 text-sm font-medium text-stone-700 hover:border-teal-600/30 hover:bg-teal-50/50 transition-colors text-left"
+              >
+                <Icona size={17} className="text-[#1D5C56] shrink-0" />
+                {etichetta}
+              </button>
+            ))}
+          </div>
 
-      <button
-        type="button"
-        onClick={() => setMostraSegnalazione({ testoPrecompilato: '' })}
-        className="mx-4 mb-4 flex items-center justify-center gap-2 text-sm font-medium text-[#B4472B] border border-[#E8A24A]/40 bg-[#FCEEDF] rounded-2xl py-3 hover:bg-[#FAE3C9] transition-colors"
-      >
-        <MessageCircleWarning size={16} /> {t('segnalaProblema')}
-      </button>
+          <button
+            type="button"
+            onClick={() => setVista('chat')}
+            className="w-full flex items-center justify-center gap-2 bg-[#0E3D3C] hover:bg-[#0A2E2D] text-white font-medium py-3.5 rounded-2xl transition-colors mb-2.5"
+          >
+            <MessageSquareText size={18} /> {t('faiDomandaChat')}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => apriSegnalazione()}
+            className="w-full flex items-center justify-center gap-2 text-sm font-medium text-[#B4472B] border border-[#E8A24A]/40 bg-[#FCEEDF] rounded-2xl py-3 hover:bg-[#FAE3C9] transition-colors"
+          >
+            <MessageCircleWarning size={16} /> {t('segnalaProblema')}
+          </button>
+        </div>
+      ) : (
+        <>
+          <ListaMessaggi
+            messaggi={messaggi}
+            limiteRaggiunto={limiteRaggiunto}
+            contattoSuggerito={contattoSuggerito}
+            t={t}
+            onApriSegnalazione={(domanda) => apriSegnalazione(domanda ?? '')}
+          />
+
+          <BarraInput
+            slug={slug}
+            deviceId={deviceId}
+            soggiornoId={soggiornoId}
+            conversationId={conversationId}
+            disabilitato={limiteRaggiunto}
+            t={t}
+            onSoggiornoNonValido={() => {
+              // Revocato o scaduto durante la chat: si riparte dal codice
+              localStorage.removeItem(chiaveSoggiorno(slug));
+              setSoggiornoId(null);
+            }}
+            onLimiteRaggiunto={() => setLimiteRaggiunto(true)}
+            onNuovoMessaggio={(msgOspite, risposta, nuovoConversationId, richiedeContatto) => {
+              setConversationId(nuovoConversationId);
+              setMessaggi((m) => [
+                ...m,
+                { ruolo: 'ospite', testo: msgOspite },
+                { ruolo: 'assistente', testo: risposta },
+              ]);
+              setContattoSuggerito(richiedeContatto ? { domanda: msgOspite } : null);
+            }}
+          />
+
+          <button
+            type="button"
+            onClick={() => apriSegnalazione()}
+            className="mx-4 mb-4 flex items-center justify-center gap-2 text-sm font-medium text-[#B4472B] border border-[#E8A24A]/40 bg-[#FCEEDF] rounded-2xl py-3 hover:bg-[#FAE3C9] transition-colors"
+          >
+            <MessageCircleWarning size={16} /> {t('segnalaProblema')}
+          </button>
+        </>
+      )}
+
+      {rispostaRapidaAperta && (
+        <ModaleRispostaRapida
+          titolo={RISPOSTE_RAPIDE.find((r) => r.id === rispostaRapidaAperta)?.etichetta ?? ''}
+          testo={costruisciRispostaRapida(rispostaRapidaAperta, profilo, lingua, t)}
+          t={t}
+          lingua={lingua}
+          onChiudi={() => setRispostaRapidaAperta(null)}
+          onVaiInChat={() => { setRispostaRapidaAperta(null); setVista('chat'); }}
+        />
+      )}
 
       {mostraSegnalazione && (
         <ModaleSegnalazione
@@ -202,6 +363,34 @@ export default function ChatOspite({ slug }) {
           onChiudi={() => setMostraSegnalazione(false)}
         />
       )}
+    </div>
+  );
+}
+
+// ============================================================
+// Modale di risposta rapida — mostra il contenuto istantaneo
+// (nessuna chiamata a Claude, nessun messaggio consumato)
+// ============================================================
+function ModaleRispostaRapida({ titolo, testo, t, lingua, onChiudi, onVaiInChat }) {
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-20" onClick={onChiudi}>
+      <div dir={LINGUE_RTL.includes(lingua) ? 'rtl' : 'ltr'} className="w-full max-w-md bg-white rounded-t-3xl px-5 pt-4 pb-6" onClick={(e) => e.stopPropagation()}>
+        <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-lg text-stone-900">{titolo}</h2>
+          <button type="button" onClick={onChiudi} aria-label="Chiudi" className="text-stone-400 hover:text-stone-600">
+            <X size={20} />
+          </button>
+        </div>
+        <p className="text-[15px] text-stone-700 whitespace-pre-line leading-relaxed mb-5">{testo}</p>
+        <button
+          type="button"
+          onClick={onVaiInChat}
+          className="w-full text-sm font-medium text-[#1D5C56] border border-[#1D5C56]/25 rounded-2xl py-2.5 hover:bg-[#1D5C56]/5 transition-colors"
+        >
+          {t('nonQuelloCercavo')}
+        </button>
+      </div>
     </div>
   );
 }
@@ -236,7 +425,7 @@ function SchermataCodice({ slug, deviceId, t, lingua, onCambiaLingua, onVerifica
         return;
       }
 
-      onVerificato(dati.soggiorno_id);
+      onVerificato(dati.soggiorno_id, dati.profilo);
     } catch {
       setErrore(t('erroreConnessione'));
       setCaricamento(false);
@@ -244,7 +433,7 @@ function SchermataCodice({ slug, deviceId, t, lingua, onCambiaLingua, onVerifica
   }
 
   return (
-    <div className="relative max-w-md mx-auto min-h-screen flex flex-col justify-center px-7 overflow-hidden bg-[#FBF7F1]">
+    <div dir={LINGUE_RTL.includes(lingua) ? 'rtl' : 'ltr'} className="relative max-w-md mx-auto min-h-screen flex flex-col justify-center px-7 overflow-hidden bg-[#FBF7F1]">
       <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-br from-[#0E3D3C] to-[#1D5C56]" />
       <div className="absolute -right-10 top-8 w-40 h-40 rounded-full bg-[#E8A24A]/25" />
       <div className="absolute right-16 top-32 w-16 h-16 rounded-full bg-white/10" />

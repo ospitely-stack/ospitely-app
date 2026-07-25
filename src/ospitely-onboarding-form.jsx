@@ -85,7 +85,7 @@ function BottoneAggiungi({ onClick, testo }) {
 }
 
 export default function FormOnboardingStruttura() {
-  const { supabase, strutturaAttiva, strutturaAttivaId } = useOspitely();
+  const { supabase, sessione, strutturaAttiva, strutturaAttivaId } = useOspitely();
   const idGiaCaricato = React.useRef(null);
 
   const [sezioneAperta, setSezioneAperta] = useState('dati');
@@ -386,6 +386,60 @@ export default function FormOnboardingStruttura() {
     }
   }
 
+  // Solo i campi di testo libero — non orari, non booleani, non password —
+  // vanno tradotti. I nomi propri (es. "nome" nei consigli locali) restano
+  // sempre invariati, gestito dentro l'Edge Function di traduzione stessa.
+  function campiDaTradurre(sezioneId) {
+    switch (sezioneId) {
+      case 'checkin':
+        return { istruzioni_accesso: checkin.istruzioni };
+      case 'colazione':
+        return { colazione_note: colazione.note };
+      case 'wifi':
+        return { note_utenze: wifi.noteUtenze };
+      case 'regole':
+        return {
+          orario_silenzio: regole.orarioSilenzio,
+          policy_fumo: regole.policyFumo,
+          policy_animali: regole.policyAnimali,
+          policy_ospiti_esterni: regole.policyOspitiEsterni,
+          altre_regole: regole.altreRegole,
+        };
+      case 'trasporti':
+        return {
+          fermata_bus_info: trasporti.bus,
+          stazione_info: trasporti.stazione,
+          aeroporto_info: trasporti.aeroporto,
+          parcheggio_info: trasporti.parcheggio,
+        };
+      case 'consigli':
+        return { consigli_locali: consigli };
+      case 'faq':
+        return { faq };
+      default:
+        return null; // dati, contatti, lingua: niente da tradurre
+    }
+  }
+
+  // Chiamata "fire and forget": non blocca né rallenta il salvataggio
+  // della sezione. Se fallisce, le risposte rapide dell'ospite restano
+  // semplicemente in italiano per quei campi — nessun errore visibile
+  // all'host, la traduzione è un miglioramento silenzioso in background.
+  function avviaTraduzioneInBackground(sezioneId) {
+    const campi = campiDaTradurre(sezioneId);
+    if (!campi) return;
+
+    fetch(`${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/traduci-sezione`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${sessione.access_token}`,
+      },
+      body: JSON.stringify({ property_id: strutturaAttiva.id, testi: campi }),
+    }).catch(() => { /* silenzioso, vedi commento sopra */ });
+  }
+
   async function salvaSezione(sezioneId) {
     if (!strutturaAttiva) {
       setSalvataggio((s) => ({ ...s, [sezioneId]: 'errore' }));
@@ -411,6 +465,7 @@ export default function FormOnboardingStruttura() {
 
     setSalvataggio((s) => ({ ...s, [sezioneId]: 'salvato' }));
     setTimeout(() => setSalvataggio((s) => ({ ...s, [sezioneId]: 'idle' })), 2000);
+    avviaTraduzioneInBackground(sezioneId);
   }
 
   function StatoSalvataggio({ sezioneId }) {
@@ -446,7 +501,7 @@ export default function FormOnboardingStruttura() {
         <button
           type="button"
           onClick={() => salvaSezione(sezioneId)}
-          className="ml-auto bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="ml-auto bg-[#0E3D3C] hover:bg-[#0A2E2D] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
           Salva sezione
         </button>
