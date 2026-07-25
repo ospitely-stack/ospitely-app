@@ -25,9 +25,14 @@ function Header() {
   return (
     <header className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
       <span className="font-semibold text-lg">Ospitely</span>
-      <a href="/register" className="text-sm font-medium bg-stone-900 text-white px-4 py-2 rounded-lg">
-        Inizia ora
-      </a>
+      <div className="flex items-center gap-4">
+        <a href="/login" className="text-sm font-medium text-stone-600 hover:text-stone-900">
+          Accedi
+        </a>
+        <a href="/register" className="text-sm font-medium bg-stone-900 text-white px-4 py-2 rounded-lg">
+          Inizia ora
+        </a>
+      </div>
     </header>
   );
 }
