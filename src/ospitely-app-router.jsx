@@ -77,21 +77,6 @@ function usaPercorsoCorrente() {
 }
 
 // ============================================================
-// Pagina Home minimale (marketing) — placeholder
-// ============================================================
-function PaginaHome() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-stone-50">
-      <h1 className="text-2xl font-semibold text-stone-900 mb-2">Ospitely</h1>
-      <p className="text-stone-500 mb-6">L'assistente AI multilingue per i tuoi ospiti</p>
-      <a href="/register" className="bg-stone-800 text-white font-medium px-6 py-3 rounded-lg">
-        Inizia ora
-      </a>
-    </div>
-  );
-}
-
-// ============================================================
 // Login host (magic link) — mostrata se non c'è sessione, altrimenti
 // reindirizza subito alla dashboard
 // ============================================================
