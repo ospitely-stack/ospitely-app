@@ -234,7 +234,21 @@ export default function ChatOspite({ slug }) {
       headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
       body: JSON.stringify({ slug, soggiorno_id: soggiornoId, device_id: deviceId }),
     })
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (res.status === 403) {
+          // Il dispositivo non risulta più autorizzato (es. l'host ha
+          // fatto "Reset dispositivi") o il soggiorno non è più valido:
+          // si riparte dalla schermata del codice invece di restare
+          // bloccati con un profilo vuoto senza via d'uscita.
+          if (!annullato) {
+            localStorage.removeItem(chiaveSoggiorno(slug));
+            localStorage.removeItem(chiaveProfilo(slug));
+            setSoggiornoId(null);
+          }
+          return null;
+        }
+        return res.ok ? res.json() : null;
+      })
       .then((dati) => {
         if (annullato || !dati?.profilo) return;
         setProfilo(dati.profilo);
