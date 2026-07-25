@@ -224,6 +224,7 @@ export default function FormOnboardingStruttura() {
           if (bozza.consigli) setConsigli(bozza.consigli);
           if (bozza.faq) setFaq(bozza.faq);
           if (bozza.lingua) setLingua(bozza.lingua);
+          if (bozza.sezioneAperta) setSezioneAperta(bozza.sezioneAperta);
         }
       } catch {
         // Bozza corrotta o sessionStorage non disponibile: ignora e
@@ -237,20 +238,35 @@ export default function FormOnboardingStruttura() {
     return () => { annullato = true; };
   }, [strutturaAttivaId, strutturaAttiva, supabase]);
 
+  // Ripristina la posizione di scroll (stessa logica: sopravvive a un
+  // riavvio della pagina fatto dal browser, si perde alla chiusura scheda)
+  useEffect(() => {
+    if (caricamentoIniziale || !strutturaAttivaId) return;
+    const scrollSalvato = sessionStorage.getItem(`ospitely_scroll_profilo_${strutturaAttivaId}`);
+    if (scrollSalvato) {
+      requestAnimationFrame(() => window.scrollTo(0, Number(scrollSalvato)));
+    }
+    function salvaScroll() {
+      sessionStorage.setItem(`ospitely_scroll_profilo_${strutturaAttivaId}`, String(window.scrollY));
+    }
+    window.addEventListener('scroll', salvaScroll, { passive: true });
+    return () => window.removeEventListener('scroll', salvaScroll);
+  }, [caricamentoIniziale, strutturaAttivaId]);
+
   // Salva continuamente una bozza di quello che l'host sta scrivendo,
   // finché non ha ancora premuto "Salva" sulla sezione. Protegge dal
   // caso in cui il browser ricarichi la pagina in background (cambio
   // scheda, dispositivo con poca memoria) prima che l'host salvi.
   useEffect(() => {
     if (!strutturaAttivaId || caricamentoIniziale) return;
-    const bozza = { dati, checkin, colazione, wifi, regole, contatti, trasporti, consigli, faq, lingua };
+    const bozza = { dati, checkin, colazione, wifi, regole, contatti, trasporti, consigli, faq, lingua, sezioneAperta };
     try {
       sessionStorage.setItem(chiaveBozza(strutturaAttivaId), JSON.stringify(bozza));
     } catch {
       // sessionStorage pieno o non disponibile (es. modalità privata
       // estrema): non è grave, semplicemente non c'è la rete di sicurezza.
     }
-  }, [strutturaAttivaId, caricamentoIniziale, dati, checkin, colazione, wifi, regole, contatti, trasporti, consigli, faq, lingua]);
+  }, [strutturaAttivaId, caricamentoIniziale, dati, checkin, colazione, wifi, regole, contatti, trasporti, consigli, faq, lingua, sezioneAperta]);
 
   const mostraColazione = TIPI_CON_COLAZIONE.includes(dati.tipoStruttura);
 

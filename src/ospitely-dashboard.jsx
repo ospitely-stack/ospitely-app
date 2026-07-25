@@ -22,8 +22,13 @@ const stileInput =
 
 export default function Dashboard() {
   const { strutturaAttiva, caricamentoStrutture } = useOspitely();
-  const [tabAttivo, setTabAttivo] = useState(TAB.HOME);
+  const [tabAttivo, setTabAttivo] = useState(() => sessionStorage.getItem('ospitely_tab_dashboard') || TAB.HOME);
   const [mostraAccount, setMostraAccount] = useState(false); // false | { apriAggiungiStruttura?: boolean }
+
+  function cambiaTab(nuovoTab) {
+    setTabAttivo(nuovoTab);
+    sessionStorage.setItem('ospitely_tab_dashboard', nuovoTab);
+  }
 
   if (caricamentoStrutture) {
     return (
@@ -47,13 +52,13 @@ export default function Dashboard() {
       <IntestazioneStruttura onApriAccount={() => setMostraAccount(true)} />
 
       <div className="flex-1 overflow-y-auto pb-20">
-        {tabAttivo === TAB.HOME && <SezioneHome onCambiaTab={setTabAttivo} onApriAggiungiStruttura={() => setMostraAccount({ apriAggiungiStruttura: true })} />}
+        {tabAttivo === TAB.HOME && <SezioneHome onCambiaTab={cambiaTab} onApriAggiungiStruttura={() => setMostraAccount({ apriAggiungiStruttura: true })} />}
         {tabAttivo === TAB.SOGGIORNI && <SezioneSoggiorni />}
         {tabAttivo === TAB.SEGNALAZIONI && <SezioneSegnalazioni />}
         {tabAttivo === TAB.PROFILO && <FormOnboardingStruttura />}
       </div>
 
-      <BarraNavigazione tabAttivo={tabAttivo} onCambia={setTabAttivo} />
+      <BarraNavigazione tabAttivo={tabAttivo} onCambia={cambiaTab} />
 
       {mostraAccount && (
         <PannelloAccount
