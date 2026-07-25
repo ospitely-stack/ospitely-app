@@ -17,6 +17,7 @@ const FUNCTIONS_BASE_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
 const URL_VERIFICA_SOGGIORNO = `${FUNCTIONS_BASE_URL}/verifica-soggiorno`;
 const URL_CHAT = `${FUNCTIONS_BASE_URL}/chat-ospite`;
 const URL_SEGNALA = `${FUNCTIONS_BASE_URL}/segnala-problema`;
+const URL_AGGIORNA_PROFILO = `${FUNCTIONS_BASE_URL}/aggiorna-profilo`;
 
 const CHIAVE_DEVICE_ID = 'ospitely_device_id';
 
@@ -61,12 +62,12 @@ function chiaveProfilo(slug) {
 }
 
 const RISPOSTE_RAPIDE = [
-  { id: 'wifi', etichetta: 'WiFi', Icona: Wifi },
-  { id: 'orari', etichetta: 'Orari', Icona: Clock },
-  { id: 'doveMangiare', etichetta: 'Dove mangiare', Icona: UtensilsCrossed },
-  { id: 'puntiInteresse', etichetta: 'Punti di interesse', Icona: MapPin },
-  { id: 'contatti', etichetta: 'Contatti', Icona: Phone },
-  { id: 'regole', etichetta: 'Regole della casa', Icona: ScrollText },
+  { id: 'wifi', chiaveEtichetta: 'bottoneWifi', Icona: Wifi },
+  { id: 'orari', chiaveEtichetta: 'bottoneOrari', Icona: Clock },
+  { id: 'doveMangiare', chiaveEtichetta: 'bottoneDoveMangiare', Icona: UtensilsCrossed },
+  { id: 'puntiInteresse', chiaveEtichetta: 'bottonePuntiInteresse', Icona: MapPin },
+  { id: 'contatti', chiaveEtichetta: 'bottoneContatti', Icona: Phone },
+  { id: 'regole', chiaveEtichetta: 'bottoneRegole', Icona: ScrollText },
 ];
 
 // Risposte istantanee costruite dal profilo già scaricato al momento
@@ -220,6 +221,30 @@ export default function ChatOspite({ slug }) {
   const [mostraSegnalazione, setMostraSegnalazione] = useState(false);
   const [contattoSuggerito, setContattoSuggerito] = useState(null); // { domanda } se l'ultima risposta richiede contatto host
 
+  // Se l'ospite ha già un soggiorno verificato da prima (non passa più
+  // dalla schermata del codice), il profilo in cache potrebbe essere
+  // vecchio — lo aggiorna in background, senza bloccare la UI né
+  // richiedere di nuovo il codice.
+  useEffect(() => {
+    if (!soggiornoId) return;
+    let annullato = false;
+
+    fetch(URL_AGGIORNA_PROFILO, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+      body: JSON.stringify({ slug, soggiorno_id: soggiornoId, device_id: deviceId }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((dati) => {
+        if (annullato || !dati?.profilo) return;
+        setProfilo(dati.profilo);
+        try { localStorage.setItem(chiaveProfilo(slug), JSON.stringify(dati.profilo)); } catch { /* non grave */ }
+      })
+      .catch(() => { /* silenzioso: in caso di errore resta la cache precedente */ });
+
+    return () => { annullato = true; };
+  }, [soggiornoId, slug, deviceId]);
+
   // Se non c'è ancora un soggiorno verificato, mostra la schermata del codice
   if (!soggiornoId) {
     return (
@@ -269,7 +294,7 @@ export default function ChatOspite({ slug }) {
           <p className="text-sm text-stone-500 mb-4">{t('messaggioIniziale')}</p>
 
           <div className="grid grid-cols-2 gap-2.5 mb-4">
-            {RISPOSTE_RAPIDE.map(({ id, etichetta, Icona }) => (
+            {RISPOSTE_RAPIDE.map(({ id, chiaveEtichetta, Icona }) => (
               <button
                 key={id}
                 type="button"
@@ -277,7 +302,7 @@ export default function ChatOspite({ slug }) {
                 className="flex items-center gap-2 bg-white border border-stone-200 rounded-2xl px-3.5 py-3 text-sm font-medium text-stone-700 hover:border-teal-600/30 hover:bg-teal-50/50 transition-colors text-left"
               >
                 <Icona size={17} className="text-[#1D5C56] shrink-0" />
-                {etichetta}
+                {t(chiaveEtichetta)}
               </button>
             ))}
           </div>
@@ -344,7 +369,7 @@ export default function ChatOspite({ slug }) {
 
       {rispostaRapidaAperta && (
         <ModaleRispostaRapida
-          titolo={RISPOSTE_RAPIDE.find((r) => r.id === rispostaRapidaAperta)?.etichetta ?? ''}
+          titolo={t(RISPOSTE_RAPIDE.find((r) => r.id === rispostaRapidaAperta)?.chiaveEtichetta) ?? ''}
           testo={costruisciRispostaRapida(rispostaRapidaAperta, profilo, lingua, t)}
           t={t}
           lingua={lingua}

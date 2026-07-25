@@ -43,6 +43,8 @@ const TRADUZIONI = {
     infoNonDisponibile: 'Il tuo host non ha ancora compilato queste informazioni — chiedi pure in chat.',
     nonQuelloCercavo: 'Non è quello che cercavo, chiedi in chat →',
     faiDomandaChat: 'Fai una domanda in chat',
+    bottoneWifi: 'WiFi', bottoneOrari: 'Orari', bottoneDoveMangiare: 'Dove mangiare',
+    bottonePuntiInteresse: 'Punti di interesse', bottoneContatti: 'Contatti', bottoneRegole: 'Regole della casa',
   },
   en: {
     benvenutoTitolo: 'Welcome',
@@ -79,6 +81,8 @@ const TRADUZIONI = {
     infoNonDisponibile: 'Your host hasn\'t filled in this information yet — feel free to ask in chat.',
     nonQuelloCercavo: 'Not what you were looking for? Ask in chat →',
     faiDomandaChat: 'Ask in chat',
+    bottoneWifi: 'WiFi', bottoneOrari: 'Hours', bottoneDoveMangiare: 'Where to eat',
+    bottonePuntiInteresse: 'Points of interest', bottoneContatti: 'Contacts', bottoneRegole: 'House rules',
   },
   fr: {
     benvenutoTitolo: 'Bienvenue',
@@ -115,6 +119,8 @@ const TRADUZIONI = {
     infoNonDisponibile: 'Votre hôte n\'a pas encore renseigné cette information — n\'hésitez pas à demander dans le chat.',
     nonQuelloCercavo: 'Ce n\'est pas ce que vous cherchiez ? Demandez dans le chat →',
     faiDomandaChat: 'Poser une question dans le chat',
+    bottoneWifi: 'WiFi', bottoneOrari: 'Horaires', bottoneDoveMangiare: 'Où manger',
+    bottonePuntiInteresse: 'Points d\'intérêt', bottoneContatti: 'Contacts', bottoneRegole: 'Règles de la maison',
   },
   de: {
     benvenutoTitolo: 'Willkommen',
@@ -151,6 +157,8 @@ const TRADUZIONI = {
     infoNonDisponibile: 'Dein Gastgeber hat diese Information noch nicht ausgefüllt — frag einfach im Chat.',
     nonQuelloCercavo: 'Nicht das Gesuchte? Im Chat fragen →',
     faiDomandaChat: 'Frag im Chat',
+    bottoneWifi: 'WLAN', bottoneOrari: 'Öffnungszeiten', bottoneDoveMangiare: 'Essen gehen',
+    bottonePuntiInteresse: 'Sehenswürdigkeiten', bottoneContatti: 'Kontakte', bottoneRegole: 'Hausregeln',
   },
   es: {
     benvenutoTitolo: 'Bienvenido',
@@ -187,6 +195,8 @@ const TRADUZIONI = {
     infoNonDisponibile: 'Tu anfitrión aún no ha completado esta información — pregunta en el chat.',
     nonQuelloCercavo: '¿No es lo que buscabas? Pregunta en el chat →',
     faiDomandaChat: 'Preguntar en el chat',
+    bottoneWifi: 'WiFi', bottoneOrari: 'Horarios', bottoneDoveMangiare: 'Dónde comer',
+    bottonePuntiInteresse: 'Puntos de interés', bottoneContatti: 'Contactos', bottoneRegole: 'Normas de la casa',
   },
   zh: {
     benvenutoTitolo: '欢迎',
@@ -223,6 +233,8 @@ const TRADUZIONI = {
     infoNonDisponibile: '房东尚未填写此信息 — 请在聊天中询问。',
     nonQuelloCercavo: '没找到您需要的？在聊天中询问 →',
     faiDomandaChat: '在聊天中提问',
+    bottoneWifi: 'WiFi', bottoneOrari: '时间', bottoneDoveMangiare: '用餐地点',
+    bottonePuntiInteresse: '周边景点', bottoneContatti: '联系方式', bottoneRegole: '房屋规则',
   },
   ar: {
     benvenutoTitolo: 'أهلاً بك',
@@ -259,6 +271,8 @@ const TRADUZIONI = {
     infoNonDisponibile: 'لم يقم المضيف بعد بملء هذه المعلومات — لا تتردد في السؤال في المحادثة.',
     nonQuelloCercavo: 'ليس ما كنت تبحث عنه؟ اسأل في المحادثة ←',
     faiDomandaChat: 'اسأل في المحادثة',
+    bottoneWifi: 'واي فاي', bottoneOrari: 'المواعيد', bottoneDoveMangiare: 'أين تأكل',
+    bottonePuntiInteresse: 'أماكن الاهتمام', bottoneContatti: 'جهات الاتصال', bottoneRegole: 'قواعد المنزل',
   },
 };
 
