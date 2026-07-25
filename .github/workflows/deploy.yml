@@ -35,12 +35,22 @@ jobs:
       - name: Build del progetto
         run: npm run build
         env:
-          # Variabili pubbliche necessarie in fase di build — vanno
-          # configurate come Repository Secrets in Settings → Secrets
-          # and variables → Actions (stessi valori del file .env locale,
-          # SOLO quelli con prefisso VITE_, mai le chiavi segrete server)
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_SUPABASE_FUNCTIONS_URL: ${{ secrets.VITE_SUPABASE_FUNCTIONS_URL }}
 
-      - name: Prepara le pagine per il
+      - name: Prepara le pagine per il deploy
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Pubblica su GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
