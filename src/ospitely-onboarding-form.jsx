@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Plus, Trash2, Check, Loader2, AlertCircle } from 'lucide-react';
 import { useOspitely } from './ospitely-app-context.jsx';
 
@@ -6,9 +6,8 @@ import { useOspitely } from './ospitely-app-context.jsx';
 // OSPITELY — Form di onboarding struttura (property profile)
 // Mobile-first, accordion a 10 sezioni, salvataggio indipendente
 // per sezione (non serve compilare tutto in un'unica sessione).
-//
-// Questo componente gestisce solo UI + stato locale. I punti dove
-// va collegato Supabase sono segnati con commenti "// SUPABASE:".
+// Carica i dati già salvati all'apertura, così l'host li ritrova
+// e li modifica invece di doverli riscrivere da capo.
 // ============================================================
 
 const SEZIONI = [
@@ -26,8 +25,16 @@ const SEZIONI = [
 
 const TIPI_CON_COLAZIONE = ['hotel', 'b&b', 'affittacamere'];
 
+const OPZIONI_COLAZIONE_TIPO = [
+  { valore: 'dolce', etichetta: 'Dolce' },
+  { valore: 'salata', etichetta: 'Salata' },
+  { valore: 'internazionale', etichetta: 'Internazionale' },
+  { valore: 'self_service', etichetta: 'Self-service' },
+  { valore: 'servita', etichetta: 'Servita' },
+];
+
 const stileInput =
-  'w-full rounded-lg border border-stone-300 px-3 py-2.5 text-[15px] text-stone-800 placeholder:text-stone-400 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500';
+  'w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-[15px] text-stone-800 placeholder:text-stone-400 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/15 transition-shadow';
 const stileLabel = 'block text-sm font-medium text-stone-700 mb-1.5';
 const stileSelect = stileInput + ' bg-white';
 
@@ -74,6 +81,7 @@ export default function FormOnboardingStruttura() {
 
   const [sezioneAperta, setSezioneAperta] = useState('dati');
   const [salvataggio, setSalvataggio] = useState({}); // { [sezioneId]: 'idle' | 'salvando' | 'salvato' | 'errore' }
+  const [caricamentoIniziale, setCaricamentoIniziale] = useState(true);
 
   const [dati, setDati] = useState({
     nomeStruttura: '',
@@ -83,11 +91,11 @@ export default function FormOnboardingStruttura() {
   });
   const [checkin, setCheckin] = useState({
     checkinDa: '', checkinA: '', checkinLateDisponibile: false, checkinLateAPagamento: false,
-    checkoutDa: '', checkoutA: '', checkoutLateDisponibile: false, checkoutLateAPagamento: false,
+    checkoutA: '', checkoutLateDisponibile: false, checkoutLateAPagamento: false,
     modalita: '', istruzioni: '', videoUrl: '',
   });
   const [colazione, setColazione] = useState({
-    orarioDa: '', orarioA: '', dove: '', tipo: '', note: '',
+    orarioDa: '', orarioA: '', dove: '', tipo: [], note: '',
   });
   const [wifi, setWifi] = useState({ nomeRete: '', password: '', noteUtenze: '' });
   const [regole, setRegole] = useState({
@@ -107,6 +115,92 @@ export default function FormOnboardingStruttura() {
     linguaAggiuntiva: '',
     noteTraduzione: '',
   });
+
+  // Carica i dati già salvati (properties + property_profile) ogni volta
+  // che la struttura attiva cambia, così l'host ritrova quello che ha
+  // già scritto invece di vedere il form vuoto dopo aver salvato.
+  useEffect(() => {
+    if (!strutturaAttiva) return;
+    let annullato = false;
+
+    async function carica() {
+      setCaricamentoIniziale(true);
+
+      const [{ data: proprieta }, { data: profilo }] = await Promise.all([
+        supabase.from('properties').select('*').eq('id', strutturaAttiva.id).single(),
+        supabase.from('property_profile').select('*').eq('property_id', strutturaAttiva.id).maybeSingle(),
+      ]);
+
+      if (annullato) return;
+
+      if (proprieta) {
+        setDati({
+          nomeStruttura: proprieta.nome_struttura ?? '',
+          tipoStruttura: proprieta.tipo_struttura ?? '',
+          indirizzo: proprieta.indirizzo ?? '',
+          pianoCitofono: proprieta.piano_interno_citofono ?? '',
+        });
+      }
+
+      if (profilo) {
+        setCheckin({
+          checkinDa: profilo.checkin_orario_da ?? '',
+          checkinA: profilo.checkin_orario_a ?? '',
+          checkinLateDisponibile: profilo.checkin_late_disponibile ?? false,
+          checkinLateAPagamento: profilo.checkin_late_a_pagamento ?? false,
+          checkoutA: profilo.checkout_orario_a ?? '',
+          checkoutLateDisponibile: profilo.checkout_late_disponibile ?? false,
+          checkoutLateAPagamento: profilo.checkout_late_a_pagamento ?? false,
+          modalita: profilo.checkin_modalita ?? '',
+          istruzioni: profilo.istruzioni_accesso ?? '',
+          videoUrl: profilo.video_istruzioni_url ?? '',
+        });
+        setColazione({
+          orarioDa: profilo.colazione_orario_da ?? '',
+          orarioA: profilo.colazione_orario_a ?? '',
+          dove: profilo.colazione_dove ?? '',
+          tipo: Array.isArray(profilo.colazione_tipo) ? profilo.colazione_tipo : [],
+          note: profilo.colazione_note ?? '',
+        });
+        setWifi({
+          nomeRete: profilo.wifi_nome_rete ?? '',
+          password: profilo.wifi_password ?? '',
+          noteUtenze: profilo.note_utenze ?? '',
+        });
+        setRegole({
+          orarioSilenzio: profilo.orario_silenzio ?? '',
+          policyFumo: profilo.policy_fumo ?? '',
+          policyAnimali: profilo.policy_animali ?? '',
+          policyOspitiEsterni: profilo.policy_ospiti_esterni ?? '',
+          altreRegole: profilo.altre_regole ?? '',
+        });
+        setContatti({
+          numeroEmergenze: profilo.numero_emergenze ?? '',
+          whatsappHost: profilo.whatsapp_host ?? '',
+          contattiExtra: Array.isArray(profilo.contatti_extra) ? profilo.contatti_extra : [],
+        });
+        setTrasporti({
+          bus: profilo.fermata_bus_info ?? '',
+          stazione: profilo.stazione_info ?? '',
+          aeroporto: profilo.aeroporto_info ?? '',
+          parcheggio: profilo.parcheggio_info ?? '',
+        });
+        setConsigli(Array.isArray(profilo.consigli_locali) ? profilo.consigli_locali : []);
+        setFaq(Array.isArray(profilo.faq) ? profilo.faq : []);
+        setLingua({
+          tono: profilo.tono_assistente ?? 'amichevole',
+          modalitaLingua: profilo.modalita_lingua ?? 'auto_rilevamento',
+          linguaAggiuntiva: profilo.lingua_aggiuntiva ?? '',
+          noteTraduzione: profilo.note_traduzione ?? '',
+        });
+      }
+
+      setCaricamentoIniziale(false);
+    }
+
+    carica();
+    return () => { annullato = true; };
+  }, [strutturaAttiva, supabase]);
 
   const mostraColazione = TIPI_CON_COLAZIONE.includes(dati.tipoStruttura);
 
@@ -135,7 +229,6 @@ export default function FormOnboardingStruttura() {
             checkin_orario_a: checkin.checkinA || null,
             checkin_late_disponibile: checkin.checkinLateDisponibile,
             checkin_late_a_pagamento: checkin.checkinLateAPagamento,
-            checkout_orario_da: checkin.checkoutDa || null,
             checkout_orario_a: checkin.checkoutA || null,
             checkout_late_disponibile: checkin.checkoutLateDisponibile,
             checkout_late_a_pagamento: checkin.checkoutLateAPagamento,
@@ -152,7 +245,7 @@ export default function FormOnboardingStruttura() {
             colazione_orario_da: colazione.orarioDa || null,
             colazione_orario_a: colazione.orarioA || null,
             colazione_dove: colazione.dove || null,
-            colazione_tipo: colazione.tipo || null,
+            colazione_tipo: colazione.tipo,
             colazione_note: colazione.note,
           },
         };
@@ -296,35 +389,43 @@ export default function FormOnboardingStruttura() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-stone-100 min-h-screen pb-10">
-      <header className="bg-white border-b border-stone-200 px-4 py-4 sticky top-0 z-10">
-        <h1 className="text-lg font-semibold text-stone-900">Profilo struttura</h1>
-        <p className="text-sm text-stone-500 mt-0.5">
+    <div className="max-w-md mx-auto bg-[#F7F5F1] min-h-screen pb-10">
+      <header className="bg-white border-b border-stone-200/70 px-5 py-5 sticky top-0 z-10">
+        <p className="text-[11px] font-semibold tracking-[0.14em] text-teal-700 uppercase mb-1">Profilo struttura</p>
+        <h1 className="text-xl font-semibold text-stone-900">{strutturaAttiva?.nome_struttura || 'La tua struttura'}</h1>
+        <p className="text-sm text-stone-500 mt-1">
           Ogni sezione si salva da sola — puoi completarle quando vuoi
         </p>
       </header>
 
       {!strutturaAttiva && (
-        <div className="mx-3 mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-sm text-amber-800 flex items-start gap-2">
+        <div className="mx-4 mt-4 rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-3 text-sm text-amber-800 flex items-start gap-2">
           <AlertCircle size={16} className="mt-0.5 shrink-0" />
           Nessuna struttura selezionata — crea prima una struttura (nome e slug) per poter salvare il profilo.
         </div>
       )}
 
-      <div className="px-3 pt-3 space-y-2">
+      {strutturaAttiva && caricamentoIniziale && (
+        <div className="flex items-center justify-center gap-2 text-sm text-stone-400 py-10">
+          <Loader2 size={16} className="animate-spin" /> Carico i dati salvati...
+        </div>
+      )}
+
+      {strutturaAttiva && !caricamentoIniziale && (
+      <div className="px-4 pt-4 space-y-2.5">
         {SEZIONI.filter((s) => !s.condizionale || mostraColazione).map((sezione) => {
           const aperta = sezioneAperta === sezione.id;
           return (
-            <div key={sezione.id} className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+            <div key={sezione.id} className={`bg-white rounded-2xl border overflow-hidden transition-colors ${aperta ? 'border-teal-600/30 shadow-sm shadow-teal-900/5' : 'border-stone-200'}`}>
               <button
                 type="button"
                 onClick={() => setSezioneAperta(aperta ? null : sezione.id)}
-                className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                className="w-full flex items-center justify-between px-4 py-4 text-left"
               >
-                <span className="font-medium text-stone-800">{sezione.label}</span>
+                <span className={`font-medium ${aperta ? 'text-teal-800' : 'text-stone-800'}`}>{sezione.label}</span>
                 <ChevronDown
                   size={18}
-                  className={`text-stone-400 transition-transform ${aperta ? 'rotate-180' : ''}`}
+                  className={`transition-transform ${aperta ? 'rotate-180 text-teal-700' : 'text-stone-400'}`}
                 />
               </button>
 
@@ -399,16 +500,10 @@ export default function FormOnboardingStruttura() {
                         </label>
                       )}
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <Campo label="Check-out dalle">
-                          <input type="time" className={stileInput} value={checkin.checkoutDa}
-                            onChange={(e) => setCheckin({ ...checkin, checkoutDa: e.target.value })} />
-                        </Campo>
-                        <Campo label="alle">
-                          <input type="time" className={stileInput} value={checkin.checkoutA}
-                            onChange={(e) => setCheckin({ ...checkin, checkoutA: e.target.value })} />
-                        </Campo>
-                      </div>
+                      <Campo label="Check-out entro le">
+                        <input type="time" className={stileInput} value={checkin.checkoutA}
+                          onChange={(e) => setCheckin({ ...checkin, checkoutA: e.target.value })} />
+                      </Campo>
                       <label className="flex items-center gap-2 text-sm text-stone-700 mb-2">
                         <input type="checkbox" checked={checkin.checkoutLateDisponibile}
                           onChange={(e) => setCheckin({ ...checkin, checkoutLateDisponibile: e.target.checked })} />
@@ -466,17 +561,33 @@ export default function FormOnboardingStruttura() {
                           <option value="in_camera">In camera</option>
                         </select>
                       </Campo>
-                      <Campo label="Tipo colazione">
-                        <select className={stileSelect} value={colazione.tipo}
-                          onChange={(e) => setColazione({ ...colazione, tipo: e.target.value })}>
-                          <option value="">Seleziona...</option>
-                          <option value="dolce">Dolce</option>
-                          <option value="salata">Salata</option>
-                          <option value="internazionale">Internazionale</option>
-                          <option value="self_service">Self-service</option>
-                          <option value="servita">Servita</option>
-                          <option value="self_e_servita">Self-service e servita</option>
-                        </select>
+                      <Campo label="Tipo colazione" aiuto="Seleziona tutte le opzioni che offri">
+                        <div className="grid grid-cols-2 gap-2">
+                          {OPZIONI_COLAZIONE_TIPO.map((opzione) => {
+                            const selezionata = colazione.tipo.includes(opzione.valore);
+                            return (
+                              <label
+                                key={opzione.valore}
+                                className={`flex items-center gap-2 text-sm px-3 py-2 rounded-xl border cursor-pointer transition-colors ${
+                                  selezionata ? 'border-teal-600 bg-teal-50 text-teal-900' : 'border-stone-200 text-stone-700'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="accent-teal-600"
+                                  checked={selezionata}
+                                  onChange={(e) => {
+                                    const nuovo = e.target.checked
+                                      ? [...colazione.tipo, opzione.valore]
+                                      : colazione.tipo.filter((t) => t !== opzione.valore);
+                                    setColazione({ ...colazione, tipo: nuovo });
+                                  }}
+                                />
+                                {opzione.etichetta}
+                              </label>
+                            );
+                          })}
+                        </div>
                       </Campo>
                       <Campo label="Note" aiuto="Es. intolleranze gestibili, opzioni vegane">
                         <textarea className={stileInput + ' min-h-[70px]'} value={colazione.note}
@@ -723,6 +834,7 @@ export default function FormOnboardingStruttura() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }
