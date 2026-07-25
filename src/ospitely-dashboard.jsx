@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   if (caricamentoStrutture) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F1]">
         <Loader2 size={24} className="animate-spin text-stone-400" />
       </div>
     );
@@ -35,7 +35,7 @@ export default function Dashboard() {
 
   if (!strutturaAttiva) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-stone-50 px-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F7F5F1] px-6 text-center">
         <p className="text-stone-600 mb-1">Nessuna struttura ancora creata</p>
         <p className="text-sm text-stone-400">Crea la tua prima struttura per iniziare</p>
       </div>
@@ -43,7 +43,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-stone-50 flex flex-col">
+    <div className="max-w-md mx-auto min-h-screen bg-[#F7F5F1] flex flex-col">
       <IntestazioneStruttura onApriAccount={() => setMostraAccount(true)} />
 
       <div className="flex-1 overflow-y-auto pb-20">
@@ -104,7 +104,7 @@ function BarraNavigazione({ tabAttivo, onCambia }) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-stone-200 flex">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-stone-200/70 flex px-1 py-1">
       {voci.map(({ id, label, Icona }) => {
         const attivo = tabAttivo === id;
         return (
@@ -112,8 +112,8 @@ function BarraNavigazione({ tabAttivo, onCambia }) {
             key={id}
             type="button"
             onClick={() => onCambia(id)}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium ${
-              attivo ? 'text-stone-900' : 'text-stone-400'
+            className={`flex-1 flex flex-col items-center gap-1 py-2 mx-0.5 rounded-xl text-xs font-medium transition-colors ${
+              attivo ? 'text-teal-800 bg-teal-50' : 'text-stone-400'
             }`}
           >
             <Icona size={20} strokeWidth={attivo ? 2.4 : 2} />
@@ -209,9 +209,10 @@ function SezioneHome({ onCambiaTab }) {
         </button>
       )}
 
-      <div className="bg-white rounded-xl border border-stone-200 p-4">
-        <p className="text-sm text-stone-500 mb-1">Soggiorni attivi ora</p>
-        <p className="text-2xl font-semibold text-stone-900">
+      <div className="bg-gradient-to-br from-[#0E3D3C] to-[#1D5C56] rounded-2xl p-5 relative overflow-hidden">
+        <div className="absolute -right-6 -top-8 w-24 h-24 rounded-full bg-white/5" />
+        <p className="relative text-sm text-teal-100/80 mb-1">Soggiorni attivi ora</p>
+        <p className="relative font-display text-3xl text-white">
           {stato.caricamento ? '—' : stato.soggiorniAttivi}
         </p>
       </div>
@@ -220,14 +221,14 @@ function SezioneHome({ onCambiaTab }) {
         <button
           type="button"
           onClick={() => onCambiaTab(TAB.SOGGIORNI)}
-          className="flex items-center justify-center gap-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium py-3 rounded-xl"
+          className="flex items-center justify-center gap-2 bg-[#D9653D] hover:bg-[#C2552F] text-white text-sm font-medium py-3.5 rounded-2xl transition-colors"
         >
           <Plus size={16} /> Nuovo soggiorno
         </button>
         <button
           type="button"
           onClick={apriQr}
-          className="flex items-center justify-center gap-2 border border-stone-300 text-stone-700 text-sm font-medium py-3 rounded-xl"
+          className="flex items-center justify-center gap-2 border border-stone-200 bg-white text-stone-700 text-sm font-medium py-3.5 rounded-2xl hover:bg-stone-50 transition-colors"
         >
           <QrCode size={16} /> QR code
         </button>
@@ -241,7 +242,7 @@ function SezioneHome({ onCambiaTab }) {
             <a
               href={qrDataUrl ?? '#'}
               download={`ospitely-${strutturaAttiva.slug}.png`}
-              className="block mt-4 bg-stone-800 text-white text-sm font-medium py-2.5 rounded-lg"
+              className="block mt-4 bg-[#0E3D3C] text-white text-sm font-medium py-2.5 rounded-lg"
             >
               Scarica PNG
             </a>
@@ -325,7 +326,7 @@ function SezioneSoggiorni() {
       <button
         type="button"
         onClick={() => setMostraForm(true)}
-        className="w-full flex items-center justify-center gap-2 bg-stone-800 hover:bg-stone-900 text-white text-sm font-medium py-3 rounded-xl"
+        className="w-full flex items-center justify-center gap-2 bg-[#0E3D3C] hover:bg-[#0A2E2D] text-white text-sm font-medium py-3 rounded-xl"
       >
         <Plus size={16} /> Nuovo soggiorno
       </button>
@@ -417,7 +418,7 @@ function ModaleDispositivi({ soggiorno, dispositivi, onChiudi }) {
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-20" onClick={onChiudi}>
       <div className="w-full max-w-md bg-white rounded-t-2xl px-5 pt-4 pb-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-stone-900">Dispositivi · {soggiorno.codice}</h2>
+          <h2 className="font-display text-lg text-stone-900">Dispositivi · {soggiorno.codice}</h2>
           <button type="button" onClick={onChiudi}><X size={20} className="text-stone-400" /></button>
         </div>
 
@@ -426,7 +427,7 @@ function ModaleDispositivi({ soggiorno, dispositivi, onChiudi }) {
         ) : (
           <div className="space-y-2">
             {dispositivi.map((d) => (
-              <div key={d.device_id} className="flex items-center gap-3 bg-stone-50 rounded-lg p-3">
+              <div key={d.device_id} className="flex items-center gap-3 bg-[#F7F5F1] rounded-lg p-3">
                 <Smartphone size={16} className="text-stone-400 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-mono text-stone-700 truncate">{d.device_id}</p>
@@ -496,7 +497,7 @@ function ModaleNuovoSoggiorno({ propertyId, onChiudi, onCreato }) {
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-20">
       <div className="w-full max-w-md bg-white rounded-t-2xl px-5 pt-4 pb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-stone-900">Nuovo soggiorno</h2>
+          <h2 className="font-display text-lg text-stone-900">Nuovo soggiorno</h2>
           <button type="button" onClick={onChiudi}><X size={20} className="text-stone-400" /></button>
         </div>
 
@@ -522,7 +523,7 @@ function ModaleNuovoSoggiorno({ propertyId, onChiudi, onCreato }) {
           type="button"
           onClick={crea}
           disabled={invio}
-          className="w-full bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2"
+          className="w-full bg-[#0E3D3C] hover:bg-[#0A2E2D] disabled:bg-stone-300 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2"
         >
           {invio ? <Loader2 size={18} className="animate-spin" /> : 'Crea codice'}
         </button>
@@ -559,7 +560,7 @@ function ModaleEstendiSoggiorno({ soggiorno, onChiudi, onEsteso }) {
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-20">
       <div className="w-full max-w-md bg-white rounded-t-2xl px-5 pt-4 pb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-stone-900">Estendi soggiorno {soggiorno.codice}</h2>
+          <h2 className="font-display text-lg text-stone-900">Estendi soggiorno {soggiorno.codice}</h2>
           <button type="button" onClick={onChiudi}><X size={20} className="text-stone-400" /></button>
         </div>
 
@@ -579,7 +580,7 @@ function ModaleEstendiSoggiorno({ soggiorno, onChiudi, onEsteso }) {
           type="button"
           onClick={estendi}
           disabled={invio}
-          className="w-full bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2"
+          className="w-full bg-[#0E3D3C] hover:bg-[#0A2E2D] disabled:bg-stone-300 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2"
         >
           {invio ? <Loader2 size={18} className="animate-spin" /> : 'Conferma estensione'}
         </button>
@@ -637,7 +638,7 @@ function SezioneSegnalazioni() {
             type="button"
             onClick={() => setFiltro(f.id)}
             className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border ${
-              filtro === f.id ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-600 border-stone-300'
+              filtro === f.id ? 'bg-[#0E3D3C] text-white border-[#0E3D3C]' : 'bg-white text-stone-600 border-stone-200'
             }`}
           >
             {f.label}
@@ -657,13 +658,13 @@ function SezioneSegnalazioni() {
             key={a.id}
             type="button"
             onClick={() => setDettaglioAperto(a)}
-            className={`w-full text-left bg-white rounded-xl border p-3.5 ${a.letto ? 'border-stone-200' : 'border-stone-800'}`}
+            className={`w-full text-left bg-white rounded-xl border p-3.5 ${a.letto ? 'border-stone-200' : 'border-[#D9653D]'}`}
           >
             <div className="flex items-center justify-between mb-1">
               <span className={`text-xs font-medium ${a.tipo === 'urgente' ? 'text-red-600' : 'text-stone-500'}`}>
                 {a.tipo === 'urgente' ? '🚨 Urgente' : 'ℹ️ Non urgente'}
               </span>
-              {!a.letto && <span className="w-2 h-2 rounded-full bg-stone-800" />}
+              {!a.letto && <span className="w-2 h-2 rounded-full bg-[#D9653D]" />}
             </div>
             <p className="text-sm text-stone-800 truncate">{a.testo}</p>
             <p className="text-xs text-stone-400 mt-1">{formattaDataOra(a.created_at)}</p>
@@ -686,7 +687,7 @@ function SezioneSegnalazioni() {
               <button
                 type="button"
                 onClick={() => segnaComeLetta(dettaglioAperto.id)}
-                className="w-full bg-stone-800 text-white text-sm font-medium py-2.5 rounded-lg"
+                className="w-full bg-[#0E3D3C] text-white text-sm font-medium py-2.5 rounded-lg"
               >
                 Segna come letta
               </button>
@@ -739,7 +740,7 @@ function PannelloAccount({ onChiudi }) {
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-30" onClick={onChiudi}>
       <div className="w-full max-w-md bg-white rounded-t-2xl px-5 pt-4 pb-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-stone-900">Account e abbonamento</h2>
+          <h2 className="font-display text-lg text-stone-900">Account e abbonamento</h2>
           <button type="button" onClick={onChiudi}><X size={20} className="text-stone-400" /></button>
         </div>
 
