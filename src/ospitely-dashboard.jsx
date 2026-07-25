@@ -67,11 +67,11 @@ function IntestazioneStruttura({ onApriAccount }) {
   const { strutture, strutturaAttiva, strutturaAttivaId, impostaStrutturaAttiva, haPiuStrutture } = useOspitely();
 
   return (
-    <header className="bg-white border-b border-stone-200 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+    <header className="bg-white border-b border-stone-200/70 px-4 py-3.5 flex items-center justify-between sticky top-0 z-10">
       {haPiuStrutture ? (
         <div className="relative flex-1">
           <select
-            className="appearance-none bg-transparent font-semibold text-stone-900 pr-6 focus:outline-none"
+            className="appearance-none bg-transparent font-display text-lg text-stone-900 pr-6 focus:outline-none"
             value={strutturaAttivaId}
             onChange={(e) => impostaStrutturaAttiva(e.target.value)}
           >
@@ -82,11 +82,11 @@ function IntestazioneStruttura({ onApriAccount }) {
           <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
         </div>
       ) : (
-        <span className="font-semibold text-stone-900">{strutturaAttiva.nome_struttura}</span>
+        <span className="font-display text-lg text-stone-900">{strutturaAttiva.nome_struttura}</span>
       )}
 
-      <button type="button" onClick={onApriAccount} aria-label="Account e abbonamento">
-        <UserCog size={22} className="text-stone-500" />
+      <button type="button" onClick={onApriAccount} aria-label="Account e abbonamento" className="text-teal-800/70 hover:text-teal-800">
+        <UserCog size={22} />
       </button>
     </header>
   );
