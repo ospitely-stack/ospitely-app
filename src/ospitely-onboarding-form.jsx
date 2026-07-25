@@ -25,6 +25,14 @@ const SEZIONI = [
 
 const TIPI_CON_COLAZIONE = ['hotel', 'b&b', 'affittacamere'];
 
+// Chiave della "bozza" in sessionStorage: sopravvive a un cambio scheda
+// o persino a un riavvio della pagina fatto dal browser per liberare
+// memoria (capita sui dispositivi mobili), ma si cancella da sola alla
+// chiusura della scheda — esattamente il comportamento desiderato.
+function chiaveBozza(strutturaId) {
+  return `ospitely_bozza_profilo_${strutturaId}`;
+}
+
 const OPZIONI_COLAZIONE_TIPO = [
   { valore: 'dolce', etichetta: 'Dolce' },
   { valore: 'salata', etichetta: 'Salata' },
@@ -198,12 +206,51 @@ export default function FormOnboardingStruttura() {
         });
       }
 
+      // Una bozza non salvata (scritta prima di un cambio scheda o un
+      // riavvio della pagina) ha la precedenza sui dati del database —
+      // altrimenti andrebbe persa proprio la modifica che l'host stava
+      // ancora scrivendo quando è tornato sulla scheda.
+      try {
+        const bozzaGrezza = sessionStorage.getItem(chiaveBozza(strutturaAttivaId));
+        if (bozzaGrezza) {
+          const bozza = JSON.parse(bozzaGrezza);
+          if (bozza.dati) setDati(bozza.dati);
+          if (bozza.checkin) setCheckin(bozza.checkin);
+          if (bozza.colazione) setColazione(bozza.colazione);
+          if (bozza.wifi) setWifi(bozza.wifi);
+          if (bozza.regole) setRegole(bozza.regole);
+          if (bozza.contatti) setContatti(bozza.contatti);
+          if (bozza.trasporti) setTrasporti(bozza.trasporti);
+          if (bozza.consigli) setConsigli(bozza.consigli);
+          if (bozza.faq) setFaq(bozza.faq);
+          if (bozza.lingua) setLingua(bozza.lingua);
+        }
+      } catch {
+        // Bozza corrotta o sessionStorage non disponibile: ignora e
+        // resta semplicemente sui dati del database appena caricati.
+      }
+
       setCaricamentoIniziale(false);
     }
 
     carica();
     return () => { annullato = true; };
   }, [strutturaAttivaId, strutturaAttiva, supabase]);
+
+  // Salva continuamente una bozza di quello che l'host sta scrivendo,
+  // finché non ha ancora premuto "Salva" sulla sezione. Protegge dal
+  // caso in cui il browser ricarichi la pagina in background (cambio
+  // scheda, dispositivo con poca memoria) prima che l'host salvi.
+  useEffect(() => {
+    if (!strutturaAttivaId || caricamentoIniziale) return;
+    const bozza = { dati, checkin, colazione, wifi, regole, contatti, trasporti, consigli, faq, lingua };
+    try {
+      sessionStorage.setItem(chiaveBozza(strutturaAttivaId), JSON.stringify(bozza));
+    } catch {
+      // sessionStorage pieno o non disponibile (es. modalità privata
+      // estrema): non è grave, semplicemente non c'è la rete di sicurezza.
+    }
+  }, [strutturaAttivaId, caricamentoIniziale, dati, checkin, colazione, wifi, regole, contatti, trasporti, consigli, faq, lingua]);
 
   const mostraColazione = TIPI_CON_COLAZIONE.includes(dati.tipoStruttura);
 

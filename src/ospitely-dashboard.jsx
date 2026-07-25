@@ -693,7 +693,7 @@ function SezioneSegnalazioni() {
     setCaricamento(true);
     const { data } = await supabase
       .from('alerts')
-      .select('*')
+      .select('*, soggiorni(codice, nome_ospite)')
       .eq('property_id', strutturaAttiva.id)
       .order('created_at', { ascending: false });
     setAlerts(data ?? []);
@@ -728,6 +728,11 @@ function SezioneSegnalazioni() {
     return a.canale_scelto === 'whatsapp' ? `https://wa.me/${numero.replace('+', '')}` : `tel:${numero}`;
   }
 
+  function riferimentoOspite(a) {
+    if (!a.soggiorni) return null;
+    return a.soggiorni.nome_ospite || `Codice ${a.soggiorni.codice}`;
+  }
+
   function CardAlert({ a }) {
     return (
       <button
@@ -741,6 +746,9 @@ function SezioneSegnalazioni() {
           </span>
           {!a.letto && <span className="w-2 h-2 rounded-full bg-[#D9653D]" />}
         </div>
+        {riferimentoOspite(a) && (
+          <p className="text-sm font-medium text-teal-800 mb-0.5">{riferimentoOspite(a)}</p>
+        )}
         <p className="text-sm text-stone-800 truncate">{a.testo}</p>
         <div className="flex items-center justify-between mt-1">
           <p className="text-xs text-stone-400">{formattaDataOra(a.created_at)}</p>
@@ -752,6 +760,10 @@ function SezioneSegnalazioni() {
 
   return (
     <div className="px-4 pt-4">
+      <p className="text-xs text-stone-500 mb-3">
+        Tocca una segnalazione per i dettagli. Quando l'hai gestita, apri il dettaglio e usa "Archivia"
+        per toglierla da questa lista — resta comunque consultabile nella sezione "Archiviate" più in basso.
+      </p>
       <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
         {[
           { id: 'tutte', label: 'Tutte' },
@@ -795,6 +807,9 @@ function SezioneSegnalazioni() {
               </span>
               <button type="button" onClick={() => setDettaglioAperto(null)}><X size={20} className="text-stone-400" /></button>
             </div>
+            {riferimentoOspite(dettaglioAperto) && (
+              <p className="text-sm font-medium text-teal-800 mb-1">{riferimentoOspite(dettaglioAperto)}</p>
+            )}
             <p className="text-stone-800 mb-2">{dettaglioAperto.testo}</p>
             <p className="text-xs text-stone-400 mb-4">{formattaDataOra(dettaglioAperto.created_at)}</p>
 
