@@ -38,6 +38,15 @@ function chiaveSoggiorno(slug) {
   return `ospitely_soggiorno_${slug}`;
 }
 
+// Trasforma lo slug ("hotel-test-finale") in un nome leggibile ("Hotel Test Finale")
+// per l'header, senza bisogno di una chiamata in più al server.
+function nomeLeggibileDaSlug(slug) {
+  return slug
+    .split('-')
+    .map((parola) => parola.charAt(0).toUpperCase() + parola.slice(1))
+    .join(' ');
+}
+
 export default function ChatOspite({ slug }) {
   const deviceId = useRef(recuperaOCreaDeviceId()).current;
   const t = useRef(creaTraduttore(rilevaLinguaInterfaccia())).current;
@@ -65,9 +74,12 @@ export default function ChatOspite({ slug }) {
   }
 
   return (
-    <div className="max-w-md mx-auto flex flex-col h-screen bg-stone-50">
-      <header className="bg-white border-b border-stone-200 px-4 py-3">
-        <h1 className="font-semibold text-stone-900">Assistente struttura</h1>
+    <div className="max-w-md mx-auto flex flex-col h-screen bg-[#FBF7F1]">
+      <header className="relative bg-gradient-to-br from-[#0E3D3C] to-[#1D5C56] px-5 pt-5 pb-4 overflow-hidden">
+        <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/5" />
+        <div className="absolute -right-2 top-6 w-16 h-16 rounded-full bg-[#E8A24A]/20" />
+        <p className="relative text-[11px] font-medium tracking-[0.16em] text-teal-100/80 uppercase">Il tuo assistente</p>
+        <h1 className="relative font-display text-xl text-white mt-0.5">{nomeLeggibileDaSlug(slug)}</h1>
       </header>
 
       <ListaMessaggi
@@ -108,7 +120,7 @@ export default function ChatOspite({ slug }) {
       <button
         type="button"
         onClick={() => setMostraSegnalazione({ testoPrecompilato: '' })}
-        className="mx-4 mb-3 flex items-center justify-center gap-2 text-sm font-medium text-red-700 border border-red-200 bg-red-50 rounded-lg py-2.5"
+        className="mx-4 mb-4 flex items-center justify-center gap-2 text-sm font-medium text-[#B4472B] border border-[#E8A24A]/40 bg-[#FCEEDF] rounded-2xl py-3 hover:bg-[#FAE3C9] transition-colors"
       >
         <MessageCircleWarning size={16} /> {t('segnalaProblema')}
       </button>
@@ -162,33 +174,42 @@ function SchermataCodice({ slug, deviceId, t, onVerificato }) {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col justify-center px-6 bg-stone-50">
-      <h1 className="text-xl font-semibold text-stone-900 mb-1">{t('benvenutoTitolo')}</h1>
-      <p className="text-sm text-stone-500 mb-6">{t('benvenutoSottotitolo')}</p>
+    <div className="relative max-w-md mx-auto min-h-screen flex flex-col justify-center px-7 overflow-hidden bg-[#FBF7F1]">
+      <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-br from-[#0E3D3C] to-[#1D5C56]" />
+      <div className="absolute -right-10 top-8 w-40 h-40 rounded-full bg-[#E8A24A]/25" />
+      <div className="absolute right-16 top-32 w-16 h-16 rounded-full bg-white/10" />
 
-      <input
-        className="w-full rounded-lg border border-stone-300 px-4 py-3 text-center text-lg tracking-widest uppercase font-mono focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500"
-        placeholder={t('placeholderCodice')}
-        maxLength={6}
-        value={codice}
-        onChange={(e) => setCodice(e.target.value.toUpperCase())}
-        onKeyDown={(e) => e.key === 'Enter' && verifica()}
-      />
+      <div className="relative">
+        <p className="text-[11px] font-medium tracking-[0.2em] text-teal-100/80 uppercase mb-3">Ospitely</p>
+        <h1 className="font-display text-3xl text-white leading-tight mb-2">{t('benvenutoTitolo')}</h1>
+        <p className="text-sm text-teal-50/80 mb-10">{t('benvenutoSottotitolo')}</p>
 
-      {errore && (
-        <p className="mt-3 text-sm text-red-600 flex items-start gap-1.5">
-          <AlertCircle size={16} className="mt-0.5 shrink-0" /> {errore}
-        </p>
-      )}
+        <div className="bg-white rounded-3xl shadow-xl shadow-[#0E3D3C]/15 px-6 py-7">
+          <input
+            className="w-full rounded-2xl border-2 border-stone-200 px-4 py-3.5 text-center text-lg tracking-[0.3em] uppercase font-mono text-stone-800 focus:border-[#1D5C56] focus:outline-none focus:ring-2 focus:ring-[#1D5C56]/15"
+            placeholder={t('placeholderCodice')}
+            maxLength={6}
+            value={codice}
+            onChange={(e) => setCodice(e.target.value.toUpperCase())}
+            onKeyDown={(e) => e.key === 'Enter' && verifica()}
+          />
 
-      <button
-        type="button"
-        onClick={verifica}
-        disabled={caricamento || !codice.trim()}
-        className="mt-4 bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2"
-      >
-        {caricamento ? <Loader2 size={18} className="animate-spin" /> : t('verificaCodice')}
-      </button>
+          {errore && (
+            <p className="mt-3 text-sm text-red-600 flex items-start gap-1.5">
+              <AlertCircle size={16} className="mt-0.5 shrink-0" /> {errore}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={verifica}
+            disabled={caricamento || !codice.trim()}
+            className="mt-5 w-full bg-[#D9653D] hover:bg-[#C2552F] disabled:bg-stone-300 text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-colors"
+          >
+            {caricamento ? <Loader2 size={18} className="animate-spin" /> : t('verificaCodice')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -203,18 +224,21 @@ function ListaMessaggi({ messaggi, limiteRaggiunto, contattoSuggerito, t, onApri
   }, [messaggi, limiteRaggiunto, contattoSuggerito]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+    <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3">
       {messaggi.length === 0 && (
-        <p className="text-center text-sm text-stone-400 mt-8">{t('messaggioIniziale')}</p>
+        <div className="text-center mt-10 px-4">
+          <p className="text-3xl mb-3">🌿</p>
+          <p className="text-sm text-stone-500">{t('messaggioIniziale')}</p>
+        </div>
       )}
 
       {messaggi.map((m, i) => (
         <div key={i} className={`flex ${m.ruolo === 'ospite' ? 'justify-end' : 'justify-start'}`}>
           <div
-            className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[15px] ${
+            className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${
               m.ruolo === 'ospite'
-                ? 'bg-stone-800 text-white rounded-br-sm'
-                : 'bg-white text-stone-800 border border-stone-200 rounded-bl-sm'
+                ? 'bg-[#0E3D3C] text-white rounded-br-md'
+                : 'bg-white text-stone-800 shadow-sm shadow-stone-900/5 rounded-bl-md'
             }`}
           >
             {m.testo}
@@ -227,7 +251,7 @@ function ListaMessaggi({ messaggi, limiteRaggiunto, contattoSuggerito, t, onApri
           <button
             type="button"
             onClick={() => onApriSegnalazione(contattoSuggerito.domanda)}
-            className="text-sm text-stone-600 border border-stone-300 rounded-lg px-3 py-2 hover:bg-stone-100"
+            className="text-sm font-medium text-[#0E3D3C] border border-[#0E3D3C]/20 bg-white rounded-xl px-3.5 py-2 hover:bg-[#0E3D3C]/5 transition-colors"
           >
             {t('contattaHost')}
           </button>
@@ -236,7 +260,7 @@ function ListaMessaggi({ messaggi, limiteRaggiunto, contattoSuggerito, t, onApri
 
       {limiteRaggiunto && (
         <div className="flex justify-start">
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-3 py-2.5 flex items-start gap-2">
+          <div className="bg-[#FCEEDF] border border-[#E8A24A]/30 text-[#8A4A1E] text-sm rounded-xl px-3.5 py-2.5 flex items-start gap-2">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
             {t('limiteMessaggio')}
           </div>
@@ -295,9 +319,9 @@ function BarraInput({
   }
 
   return (
-    <div className="border-t border-stone-200 bg-white px-3 py-3 flex items-center gap-2">
+    <div className="border-t border-stone-200/70 bg-white px-3 py-3.5 flex items-center gap-2">
       <input
-        className="flex-1 rounded-full border border-stone-300 px-4 py-2.5 text-[15px] focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500 disabled:bg-stone-100"
+        className="flex-1 rounded-full border border-stone-200 bg-stone-50 px-4 py-2.5 text-[15px] focus:border-[#1D5C56] focus:outline-none focus:ring-2 focus:ring-[#1D5C56]/15 focus:bg-white disabled:bg-stone-100 transition-colors"
         placeholder={disabilitato ? t('limiteInputPlaceholder') : t('placeholderInput')}
         value={testo}
         disabled={disabilitato}
@@ -308,7 +332,7 @@ function BarraInput({
         type="button"
         onClick={invia}
         disabled={disabilitato || invio || !testo.trim()}
-        className="shrink-0 bg-stone-800 disabled:bg-stone-300 text-white rounded-full p-2.5"
+        className="shrink-0 bg-[#D9653D] hover:bg-[#C2552F] disabled:bg-stone-300 text-white rounded-full p-3 transition-colors"
         aria-label="Invia"
       >
         {invio ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
@@ -362,12 +386,13 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-20">
-      <div className="w-full max-w-md bg-white rounded-t-2xl px-5 pt-4 pb-6">
+    <div className="fixed inset-0 bg-[#0E3D3C]/50 backdrop-blur-[2px] flex items-end justify-center z-20">
+      <div className="w-full max-w-md bg-white rounded-t-3xl px-5 pt-5 pb-7">
+        <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-stone-900">{t('modaleTitolo')}</h2>
-          <button type="button" onClick={onChiudi} aria-label="Chiudi">
-            <X size={20} className="text-stone-400" />
+          <h2 className="font-display text-lg text-stone-900">{t('modaleTitolo')}</h2>
+          <button type="button" onClick={onChiudi} aria-label="Chiudi" className="text-stone-400 hover:text-stone-600">
+            <X size={20} />
           </button>
         </div>
 
@@ -376,7 +401,7 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
             <button
               type="button"
               onClick={() => setTipo('urgente')}
-              className="w-full text-left border border-red-200 bg-red-50 rounded-lg px-4 py-3"
+              className="w-full text-left border border-red-200 bg-red-50 rounded-2xl px-4 py-3.5 hover:bg-red-100/70 transition-colors"
             >
               <span className="font-medium text-red-700">{t('urgenteTitolo')}</span>
               <p className="text-sm text-red-600 mt-0.5">{t('urgenteSottotitolo')}</p>
@@ -384,7 +409,7 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
             <button
               type="button"
               onClick={() => setTipo('non_urgente')}
-              className="w-full text-left border border-stone-200 bg-stone-50 rounded-lg px-4 py-3"
+              className="w-full text-left border border-stone-200 bg-stone-50 rounded-2xl px-4 py-3.5 hover:bg-stone-100 transition-colors"
             >
               <span className="font-medium text-stone-700">{t('nonUrgenteTitolo')}</span>
               <p className="text-sm text-stone-500 mt-0.5">{t('nonUrgenteSottotitolo')}</p>
@@ -393,7 +418,7 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
         ) : (
           <>
             <textarea
-              className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-[15px] min-h-[90px] focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500"
+              className="w-full rounded-2xl border border-stone-200 px-3.5 py-3 text-[15px] min-h-[90px] focus:border-[#1D5C56] focus:outline-none focus:ring-2 focus:ring-[#1D5C56]/15"
               placeholder={t('placeholderDescrizione')}
               value={testo}
               onChange={(e) => setTesto(e.target.value)}
@@ -405,7 +430,7 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
                 type="button"
                 onClick={() => invia('whatsapp')}
                 disabled={invio}
-                className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white font-medium py-3 rounded-lg disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 rounded-2xl disabled:opacity-60 transition-colors"
               >
                 <MessageCircle size={18} /> {t('whatsapp')}
               </button>
@@ -414,7 +439,7 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
                   type="button"
                   onClick={() => invia('chiamata')}
                   disabled={invio}
-                  className="w-full flex items-center justify-center gap-2 bg-stone-800 text-white font-medium py-3 rounded-lg disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 bg-[#0E3D3C] hover:bg-[#0A2E2D] text-white font-medium py-3.5 rounded-2xl disabled:opacity-60 transition-colors"
                 >
                   <Phone size={18} /> {t('chiama')}
                 </button>
@@ -423,7 +448,7 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
                 type="button"
                 onClick={() => invia('sms')}
                 disabled={invio}
-                className="w-full flex items-center justify-center gap-2 border border-stone-300 text-stone-700 font-medium py-3 rounded-lg disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 border border-stone-200 text-stone-700 font-medium py-3.5 rounded-2xl disabled:opacity-60 hover:bg-stone-50 transition-colors"
               >
                 {t('sms')}
               </button>
