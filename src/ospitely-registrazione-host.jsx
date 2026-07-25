@@ -78,8 +78,8 @@ export default function FormRegistrazioneHost() {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-stone-50 px-4 py-8">
-      <h1 className="text-xl font-semibold text-stone-900 mb-1">Crea il tuo account Ospitely</h1>
+    <div className="max-w-md mx-auto min-h-screen bg-[#F7F5F1] px-4 py-8">
+      <h1 className="font-display text-xl text-stone-900 mb-1">Crea il tuo account Ospitely</h1>
       <p className="text-sm text-stone-500 mb-6">
         Compila i dati per te e per la tua prima struttura — al termine verrai reindirizzato al pagamento sicuro tramite Stripe
       </p>
@@ -157,7 +157,7 @@ export default function FormRegistrazioneHost() {
         type="button"
         onClick={procedi}
         disabled={invio}
-        className="w-full bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white font-medium py-3.5 rounded-lg flex items-center justify-center gap-2"
+        className="w-full bg-[#0E3D3C] hover:bg-[#0A2E2D] disabled:bg-stone-300 text-white font-medium py-3.5 rounded-lg flex items-center justify-center gap-2"
       >
         {invio ? <Loader2 size={18} className="animate-spin" /> : 'Continua verso il pagamento'}
       </button>

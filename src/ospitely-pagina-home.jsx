@@ -8,7 +8,7 @@ import { Globe2, MessageCircleWarning, QrCode, Clock, ShieldCheck, Sparkles } fr
 
 export default function PaginaHome() {
   return (
-    <div className="bg-white text-stone-900">
+    <div className="bg-[#FBF7F1] text-stone-900">
       <Header />
       <Hero />
       <Problema />
@@ -29,7 +29,7 @@ function Header() {
         <a href="/login" className="text-sm font-medium text-stone-600 hover:text-stone-900">
           Accedi
         </a>
-        <a href="/register" className="text-sm font-medium bg-stone-900 text-white px-4 py-2 rounded-lg">
+        <a href="/register" className="text-sm font-medium bg-[#0E3D3C] text-white px-4 py-2 rounded-lg">
           Inizia ora
         </a>
       </div>
@@ -40,10 +40,10 @@ function Header() {
 function Hero() {
   return (
     <section className="max-w-3xl mx-auto px-6 pt-12 pb-16 text-center">
-      <span className="inline-block text-xs font-medium bg-stone-100 text-stone-600 px-3 py-1 rounded-full mb-5">
+      <span className="inline-block text-xs font-medium bg-[#FCEEDF] text-[#B4472B] px-3 py-1 rounded-full mb-5">
         Per B&B, hotel e affitti turistici
       </span>
-      <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight mb-4">
+      <h1 className="font-display text-3xl sm:text-4xl tracking-tight mb-4">
         Il tuo assistente per gli ospiti, che parla tutte le lingue e non dorme mai
       </h1>
       <p className="text-lg text-stone-500 mb-8">
@@ -51,7 +51,7 @@ function Hero() {
         e ricevi solo le segnalazioni che contano davvero — direttamente su WhatsApp.
       </p>
       <div className="flex items-center justify-center gap-3">
-        <a href="/register" className="bg-stone-900 text-white font-medium px-6 py-3 rounded-lg">
+        <a href="/register" className="bg-[#0E3D3C] text-white font-medium px-6 py-3 rounded-lg">
           Crea il tuo account
         </a>
         <a href="#come-funziona" className="text-stone-600 font-medium px-6 py-3">
@@ -70,9 +70,9 @@ function Problema() {
   ];
 
   return (
-    <section className="bg-stone-50 py-16">
+    <section className="bg-[#F5F1E9] py-16">
       <div className="max-w-4xl mx-auto px-6">
-        <h2 className="text-2xl font-semibold text-center mb-10">Ti suona familiare?</h2>
+        <h2 className="font-display text-2xl text-center mb-10">Ti suona familiare?</h2>
         <div className="grid sm:grid-cols-3 gap-6">
           {punti.map(({ Icona, testo }, i) => (
             <div key={i} className="bg-white rounded-xl border border-stone-200 p-5">
@@ -95,11 +95,11 @@ function ComeFunziona() {
 
   return (
     <section id="come-funziona" className="py-16 max-w-4xl mx-auto px-6">
-      <h2 className="text-2xl font-semibold text-center mb-10">Come funziona</h2>
+      <h2 className="font-display text-2xl text-center mb-10">Come funziona</h2>
       <div className="grid sm:grid-cols-3 gap-8">
         {passi.map((p) => (
           <div key={p.numero}>
-            <div className="w-8 h-8 rounded-full bg-stone-900 text-white flex items-center justify-center text-sm font-medium mb-3">
+            <div className="w-8 h-8 rounded-full bg-[#0E3D3C] text-white flex items-center justify-center text-sm font-medium mb-3">
               {p.numero}
             </div>
             <h3 className="font-medium mb-1.5">{p.titolo}</h3>
@@ -122,9 +122,9 @@ function Funzionalita() {
   ];
 
   return (
-    <section className="bg-stone-50 py-16">
+    <section className="bg-[#F5F1E9] py-16">
       <div className="max-w-4xl mx-auto px-6">
-        <h2 className="text-2xl font-semibold text-center mb-10">Cosa include</h2>
+        <h2 className="font-display text-2xl text-center mb-10">Cosa include</h2>
         <div className="grid sm:grid-cols-2 gap-6">
           {voci.map(({ Icona, titolo, testo }) => (
             <div key={titolo} className="flex gap-4">
@@ -151,7 +151,7 @@ function Prezzi() {
 
   return (
     <section className="py-16 max-w-4xl mx-auto px-6">
-      <h2 className="text-2xl font-semibold text-center mb-2">Un prezzo pensato per la tua struttura</h2>
+      <h2 className="font-display text-2xl text-center mb-2">Un prezzo pensato per la tua struttura</h2>
       <p className="text-center text-stone-500 mb-10">Paghi in base al numero di camere, non un piano unico per tutti</p>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {fasce.map((f) => (
@@ -170,9 +170,9 @@ function Prezzi() {
 
 function CtaFinale() {
   return (
-    <section className="bg-stone-900 text-white py-16 text-center">
-      <h2 className="text-2xl font-semibold mb-3">Pronto a smettere di rispondere sempre alle stesse domande?</h2>
-      <a href="/register" className="inline-block bg-white text-stone-900 font-medium px-6 py-3 rounded-lg mt-4">
+    <section className="bg-[#0E3D3C] text-white py-16 text-center">
+      <h2 className="font-display text-2xl mb-3">Pronto a smettere di rispondere sempre alle stesse domande?</h2>
+      <a href="/register" className="inline-block bg-white text-[#0E3D3C] font-medium px-6 py-3 rounded-lg mt-4">
         Crea il tuo account
       </a>
     </section>

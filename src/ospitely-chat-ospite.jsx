@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, AlertCircle, MessageCircleWarning, Phone, MessageCircle, X, Loader2 } from 'lucide-react';
-import { rilevaLinguaInterfaccia, creaTraduttore } from './ospitely-i18n.js';
+import { Send, AlertCircle, MessageCircleWarning, Phone, MessageCircle, X, Loader2, Globe } from 'lucide-react';
+import { rilevaLinguaInterfaccia, creaTraduttore, LINGUE_ETICHETTE } from './ospitely-i18n.js';
 
 // ============================================================
 // OSPITELY — Interfaccia chat ospite
@@ -38,6 +38,46 @@ function chiaveSoggiorno(slug) {
   return `ospitely_soggiorno_${slug}`;
 }
 
+// Selettore lingua manuale — sovrascrive il riconoscimento automatico
+// dal browser, per chi vuole semplicemente un'altra lingua.
+function SelettoreLingua({ lingua, onCambia }) {
+  const [aperto, setAperto] = useState(false);
+  const attuale = LINGUE_ETICHETTE.find((l) => l.codice === lingua) ?? LINGUE_ETICHETTE[0];
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setAperto((a) => !a)}
+        className="relative flex items-center gap-1 text-white/90 bg-white/10 hover:bg-white/15 rounded-full px-2.5 py-1.5 text-sm transition-colors"
+        aria-label="Cambia lingua"
+      >
+        <span>{attuale.bandiera}</span>
+        <Globe size={13} />
+      </button>
+      {aperto && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setAperto(false)} />
+          <div className="absolute right-0 mt-2 bg-white rounded-xl shadow-xl shadow-black/10 py-1.5 z-40 min-w-[140px]">
+            {LINGUE_ETICHETTE.map((l) => (
+              <button
+                key={l.codice}
+                type="button"
+                onClick={() => { onCambia(l.codice); setAperto(false); }}
+                className={`w-full text-left px-3.5 py-2 text-sm flex items-center gap-2 hover:bg-stone-50 ${
+                  l.codice === lingua ? 'text-teal-800 font-medium' : 'text-stone-700'
+                }`}
+              >
+                <span>{l.bandiera}</span> {l.etichetta}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // Trasforma lo slug ("hotel-test-finale") in un nome leggibile ("Hotel Test Finale")
 // per l'header, senza bisogno di una chiamata in più al server.
 function nomeLeggibileDaSlug(slug) {
@@ -49,7 +89,9 @@ function nomeLeggibileDaSlug(slug) {
 
 export default function ChatOspite({ slug }) {
   const deviceId = useRef(recuperaOCreaDeviceId()).current;
-  const t = useRef(creaTraduttore(rilevaLinguaInterfaccia())).current;
+  const [lingua, setLingua] = useState(() => rilevaLinguaInterfaccia());
+  const t = creaTraduttore(lingua);
+  const [mostraSelettoreLingua, setMostraSelettoreLingua] = useState(false);
 
   const [soggiornoId, setSoggiornoId] = useState(() => localStorage.getItem(chiaveSoggiorno(slug)));
   const [messaggi, setMessaggi] = useState([]);
@@ -65,6 +107,8 @@ export default function ChatOspite({ slug }) {
         slug={slug}
         deviceId={deviceId}
         t={t}
+        lingua={lingua}
+        onCambiaLingua={setLingua}
         onVerificato={(id) => {
           localStorage.setItem(chiaveSoggiorno(slug), id);
           setSoggiornoId(id);
@@ -78,8 +122,13 @@ export default function ChatOspite({ slug }) {
       <header className="relative bg-gradient-to-br from-[#0E3D3C] to-[#1D5C56] px-5 pt-5 pb-4 overflow-hidden">
         <div className="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/5" />
         <div className="absolute -right-2 top-6 w-16 h-16 rounded-full bg-[#E8A24A]/20" />
-        <p className="relative text-[11px] font-medium tracking-[0.16em] text-teal-100/80 uppercase">Il tuo assistente</p>
-        <h1 className="relative font-display text-xl text-white mt-0.5">{nomeLeggibileDaSlug(slug)}</h1>
+        <div className="relative flex items-start justify-between">
+          <div>
+            <p className="text-[11px] font-medium tracking-[0.16em] text-teal-100/80 uppercase">Il tuo assistente</p>
+            <h1 className="font-display text-xl text-white mt-0.5">{nomeLeggibileDaSlug(slug)}</h1>
+          </div>
+          <SelettoreLingua lingua={lingua} onCambia={setLingua} />
+        </div>
       </header>
 
       <ListaMessaggi
@@ -142,7 +191,7 @@ export default function ChatOspite({ slug }) {
 // ============================================================
 // Schermata inserimento codice soggiorno (gate prima della chat)
 // ============================================================
-function SchermataCodice({ slug, deviceId, t, onVerificato }) {
+function SchermataCodice({ slug, deviceId, t, lingua, onCambiaLingua, onVerificato }) {
   const [codice, setCodice] = useState('');
   const [caricamento, setCaricamento] = useState(false);
   const [errore, setErrore] = useState(null);
@@ -180,7 +229,10 @@ function SchermataCodice({ slug, deviceId, t, onVerificato }) {
       <div className="absolute right-16 top-32 w-16 h-16 rounded-full bg-white/10" />
 
       <div className="relative">
-        <p className="text-[11px] font-medium tracking-[0.2em] text-teal-100/80 uppercase mb-3">Ospitely</p>
+        <div className="flex items-start justify-between mb-3">
+          <p className="text-[11px] font-medium tracking-[0.2em] text-teal-100/80 uppercase">Ospitely</p>
+          <SelettoreLingua lingua={lingua} onCambia={onCambiaLingua} />
+        </div>
         <h1 className="font-display text-3xl text-white leading-tight mb-2">{t('benvenutoTitolo')}</h1>
         <p className="text-sm text-teal-50/80 mb-10">{t('benvenutoSottotitolo')}</p>
 
@@ -347,6 +399,7 @@ function BarraInput({
 function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onChiudi }) {
   const [tipo, setTipo] = useState(null); // 'urgente' | 'non_urgente'
   const [testo, setTesto] = useState(testoIniziale);
+  const [telefono, setTelefono] = useState('');
   const [invio, setInvio] = useState(false);
   const [errore, setErrore] = useState(null);
 
@@ -364,7 +417,7 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
         headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
         body: JSON.stringify({
           slug, soggiorno_id: soggiornoId, device_id: deviceId,
-          tipo, canale_scelto: canale, testo: testo.trim(),
+          tipo, canale_scelto: canale, testo: testo.trim(), telefono_ospite: telefono.trim() || null,
         }),
       });
       const dati = await res.json();
@@ -422,6 +475,13 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
               placeholder={t('placeholderDescrizione')}
               value={testo}
               onChange={(e) => setTesto(e.target.value)}
+            />
+            <input
+              type="tel"
+              className="w-full mt-2.5 rounded-2xl border border-stone-200 px-3.5 py-3 text-[15px] focus:border-[#1D5C56] focus:outline-none focus:ring-2 focus:ring-[#1D5C56]/15"
+              placeholder={t('placeholderTelefono')}
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
             />
             {errore && <p className="mt-2 text-sm text-red-600">{errore}</p>}
 

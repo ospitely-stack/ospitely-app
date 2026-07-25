@@ -77,7 +77,8 @@ function BottoneAggiungi({ onClick, testo }) {
 }
 
 export default function FormOnboardingStruttura() {
-  const { supabase, strutturaAttiva } = useOspitely();
+  const { supabase, strutturaAttiva, strutturaAttivaId } = useOspitely();
+  const idGiaCaricato = React.useRef(null);
 
   const [sezioneAperta, setSezioneAperta] = useState('dati');
   const [salvataggio, setSalvataggio] = useState({}); // { [sezioneId]: 'idle' | 'salvando' | 'salvato' | 'errore' }
@@ -121,6 +122,8 @@ export default function FormOnboardingStruttura() {
   // già scritto invece di vedere il form vuoto dopo aver salvato.
   useEffect(() => {
     if (!strutturaAttiva) return;
+    if (idGiaCaricato.current === strutturaAttivaId) return; // già caricato per questa struttura, non sovrascrivere modifiche in corso
+    idGiaCaricato.current = strutturaAttivaId;
     let annullato = false;
 
     async function carica() {
@@ -200,7 +203,7 @@ export default function FormOnboardingStruttura() {
 
     carica();
     return () => { annullato = true; };
-  }, [strutturaAttiva, supabase]);
+  }, [strutturaAttivaId, strutturaAttiva, supabase]);
 
   const mostraColazione = TIPI_CON_COLAZIONE.includes(dati.tipoStruttura);
 

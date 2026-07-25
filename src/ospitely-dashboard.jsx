@@ -23,7 +23,7 @@ const stileInput =
 export default function Dashboard() {
   const { strutturaAttiva, caricamentoStrutture } = useOspitely();
   const [tabAttivo, setTabAttivo] = useState(TAB.HOME);
-  const [mostraAccount, setMostraAccount] = useState(false);
+  const [mostraAccount, setMostraAccount] = useState(false); // false | { apriAggiungiStruttura?: boolean }
 
   if (caricamentoStrutture) {
     return (
@@ -47,7 +47,7 @@ export default function Dashboard() {
       <IntestazioneStruttura onApriAccount={() => setMostraAccount(true)} />
 
       <div className="flex-1 overflow-y-auto pb-20">
-        {tabAttivo === TAB.HOME && <SezioneHome onCambiaTab={setTabAttivo} />}
+        {tabAttivo === TAB.HOME && <SezioneHome onCambiaTab={setTabAttivo} onApriAggiungiStruttura={() => setMostraAccount({ apriAggiungiStruttura: true })} />}
         {tabAttivo === TAB.SOGGIORNI && <SezioneSoggiorni />}
         {tabAttivo === TAB.SEGNALAZIONI && <SezioneSegnalazioni />}
         {tabAttivo === TAB.PROFILO && <FormOnboardingStruttura />}
@@ -55,7 +55,12 @@ export default function Dashboard() {
 
       <BarraNavigazione tabAttivo={tabAttivo} onCambia={setTabAttivo} />
 
-      {mostraAccount && <PannelloAccount onChiudi={() => setMostraAccount(false)} />}
+      {mostraAccount && (
+        <PannelloAccount
+          onChiudi={() => setMostraAccount(false)}
+          apriIniziale={mostraAccount.apriAggiungiStruttura}
+        />
+      )}
     </div>
   );
 }
@@ -69,9 +74,9 @@ function IntestazioneStruttura({ onApriAccount }) {
   return (
     <header className="bg-white border-b border-stone-200/70 px-4 py-3.5 flex items-center justify-between sticky top-0 z-10">
       {haPiuStrutture ? (
-        <div className="relative flex-1">
+        <div className="relative flex-1 max-w-[70%]">
           <select
-            className="appearance-none bg-transparent font-display text-lg text-stone-900 pr-6 focus:outline-none"
+            className="appearance-none w-full bg-teal-50 border border-teal-100 rounded-xl font-display text-base text-stone-900 pl-3 pr-8 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-600/20 cursor-pointer"
             value={strutturaAttivaId}
             onChange={(e) => impostaStrutturaAttiva(e.target.value)}
           >
@@ -79,7 +84,7 @@ function IntestazioneStruttura({ onApriAccount }) {
               <option key={s.id} value={s.id}>{s.nome_struttura}</option>
             ))}
           </select>
-          <ChevronDown size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+          <ChevronDown size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-teal-700 pointer-events-none" />
         </div>
       ) : (
         <span className="font-display text-lg text-stone-900">{strutturaAttiva.nome_struttura}</span>
@@ -128,7 +133,7 @@ function BarraNavigazione({ tabAttivo, onCambia }) {
 // ============================================================
 // HOME
 // ============================================================
-function SezioneHome({ onCambiaTab }) {
+function SezioneHome({ onCambiaTab, onApriAggiungiStruttura }) {
   const { supabase, strutturaAttiva } = useOspitely();
   const [stato, setStato] = useState({ caricamento: true, nonLette: 0, soggiorniAttivi: 0 });
   const [qrDataUrl, setQrDataUrl] = useState(null);
@@ -256,6 +261,18 @@ function SezioneHome({ onCambiaTab }) {
           </div>
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={onApriAggiungiStruttura}
+        className="w-full text-left bg-gradient-to-br from-[#FCEEDF] to-[#F9DFC0] border border-[#E8A24A]/30 rounded-2xl px-4 py-4 flex items-center gap-3 hover:brightness-[0.98] transition-all"
+      >
+        <span className="text-2xl shrink-0">🔒</span>
+        <span>
+          <span className="block text-sm font-medium text-[#8A4A1E]">Pagamenti sicuri con Stripe</span>
+          <span className="block text-xs text-[#8A4A1E]/80 mt-0.5">Aggiungi un'altra struttura e risparmia il 15% sull'abbonamento →</span>
+        </span>
+      </button>
     </div>
   );
 }
@@ -321,6 +338,63 @@ function SezioneSoggiorni() {
     setTimeout(() => setCopiato(null), 1500);
   }
 
+  const attivi = soggiorni.filter((s) => !s.revocato && statoSoggiorno(s).etichetta !== 'scaduto')
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const revocati = soggiorni.filter((s) => s.revocato);
+  const scaduti = soggiorni.filter((s) => !s.revocato && statoSoggiorno(s).etichetta === 'scaduto');
+
+  function CardSoggiorno({ s }) {
+    const { etichetta, colore } = statoSoggiorno(s);
+    const dispositivi = dispositiviPerSoggiorno[s.id] ?? [];
+    return (
+      <div className="bg-white rounded-xl border border-stone-200 p-3.5">
+        <div className="flex items-center justify-between mb-1">
+          <button
+            type="button"
+            onClick={() => copia(s.codice)}
+            className="font-mono font-semibold text-stone-900 flex items-center gap-1.5"
+          >
+            {s.codice} {copiato === s.codice ? <Check size={14} className="text-emerald-600" /> : <Copy size={13} className="text-stone-400" />}
+          </button>
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${colore}`}>{etichetta}</span>
+        </div>
+        {s.nome_ospite && (
+          <p className="text-sm font-medium text-teal-800 mb-0.5">{s.nome_ospite}</p>
+        )}
+        <p className="text-sm text-stone-500 mb-2">
+          {formattaData(s.data_checkin)} → {formattaData(s.data_checkout)} · fino a {s.limite_messaggi} messaggi
+        </p>
+        <button
+          type="button"
+          onClick={() => setSoggiornoDispositiviAperto({ soggiorno: s, dispositivi })}
+          className="text-xs text-stone-500 mb-2 flex items-center gap-1 hover:text-stone-700"
+        >
+          <Smartphone size={13} /> {dispositivi.length}/2 dispositivi
+        </button>
+        {etichetta !== 'revocato' && (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setSoggiornoInEstensione(s)}
+              className="text-xs font-medium text-stone-600 border border-stone-300 rounded-lg px-3 py-1.5"
+            >
+              Estendi
+            </button>
+            {etichetta !== 'scaduto' && (
+              <button
+                type="button"
+                onClick={() => revoca(s.id)}
+                className="text-xs font-medium text-red-600 border border-red-200 rounded-lg px-3 py-1.5"
+              >
+                Revoca
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 pt-4 space-y-3">
       <button
@@ -337,54 +411,20 @@ function SezioneSoggiorni() {
         <p className="text-center text-sm text-stone-400 mt-8">Nessun soggiorno creato ancora</p>
       )}
 
-      {soggiorni.map((s) => {
-        const { etichetta, colore } = statoSoggiorno(s);
-        const dispositivi = dispositiviPerSoggiorno[s.id] ?? [];
-        return (
-          <div key={s.id} className="bg-white rounded-xl border border-stone-200 p-3.5">
-            <div className="flex items-center justify-between mb-1">
-              <button
-                type="button"
-                onClick={() => copia(s.codice)}
-                className="font-mono font-semibold text-stone-900 flex items-center gap-1.5"
-              >
-                {s.codice} {copiato === s.codice ? <Check size={14} className="text-emerald-600" /> : <Copy size={13} className="text-stone-400" />}
-              </button>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${colore}`}>{etichetta}</span>
-            </div>
-            <p className="text-sm text-stone-500 mb-2">
-              {formattaData(s.data_checkin)} → {formattaData(s.data_checkout)} · fino a {s.limite_messaggi} messaggi
-            </p>
-            <button
-              type="button"
-              onClick={() => setSoggiornoDispositiviAperto({ soggiorno: s, dispositivi })}
-              className="text-xs text-stone-500 mb-2 flex items-center gap-1 hover:text-stone-700"
-            >
-              <Smartphone size={13} /> {dispositivi.length}/2 dispositivi
-            </button>
-            {etichetta !== 'revocato' && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSoggiornoInEstensione(s)}
-                  className="text-xs font-medium text-stone-600 border border-stone-300 rounded-lg px-3 py-1.5"
-                >
-                  Estendi
-                </button>
-                {etichetta !== 'scaduto' && (
-                  <button
-                    type="button"
-                    onClick={() => revoca(s.id)}
-                    className="text-xs font-medium text-red-600 border border-red-200 rounded-lg px-3 py-1.5"
-                  >
-                    Revoca
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })}
+      {!caricamento && attivi.length === 0 && soggiorni.length > 0 && (
+        <p className="text-center text-sm text-stone-400 mt-6">Nessun soggiorno attivo al momento</p>
+      )}
+
+      <div className="space-y-2.5">
+        {attivi.map((s) => <CardSoggiorno key={s.id} s={s} />)}
+      </div>
+
+      {scaduti.length > 0 && (
+        <SezioneArchiviata titolo={`Scaduti (${scaduti.length})`} elementi={scaduti} render={(s) => <CardSoggiorno key={s.id} s={s} />} />
+      )}
+      {revocati.length > 0 && (
+        <SezioneArchiviata titolo={`Revocati (${revocati.length})`} elementi={revocati} render={(s) => <CardSoggiorno key={s.id} s={s} />} />
+      )}
 
       {mostraForm && (
         <ModaleNuovoSoggiorno
@@ -407,13 +447,44 @@ function SezioneSoggiorni() {
           soggiorno={soggiornoDispositiviAperto.soggiorno}
           dispositivi={soggiornoDispositiviAperto.dispositivi}
           onChiudi={() => setSoggiornoDispositiviAperto(null)}
+          onReset={() => { setSoggiornoDispositiviAperto(null); carica(); }}
         />
       )}
     </div>
   );
 }
 
-function ModaleDispositivi({ soggiorno, dispositivi, onChiudi }) {
+// Blocco collassabile per soggiorni scaduti/revocati — chiuso di default,
+// l'host lo apre solo quando ha bisogno di consultare lo storico.
+function SezioneArchiviata({ titolo, elementi, render }) {
+  const [aperta, setAperta] = useState(false);
+  return (
+    <div className="pt-1">
+      <button
+        type="button"
+        onClick={() => setAperta((a) => !a)}
+        className="w-full flex items-center justify-between text-sm font-medium text-stone-500 py-2"
+      >
+        {titolo}
+        <ChevronDown size={16} className={`transition-transform ${aperta ? 'rotate-180' : ''}`} />
+      </button>
+      {aperta && <div className="space-y-2.5 pt-1">{elementi.map(render)}</div>}
+    </div>
+  );
+}
+
+function ModaleDispositivi({ soggiorno, dispositivi, onChiudi, onReset }) {
+  const { supabase } = useOspitely();
+  const [resetIn, setResetIn] = useState(false);
+
+  async function resettaDispositivi() {
+    if (!window.confirm('Rimuovere tutti i dispositivi registrati su questo codice? Il prossimo dispositivo che lo userà verrà autorizzato come nuovo.')) return;
+    setResetIn(true);
+    await supabase.from('soggiorno_dispositivi').delete().eq('soggiorno_id', soggiorno.id);
+    setResetIn(false);
+    onReset();
+  }
+
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-20" onClick={onChiudi}>
       <div className="w-full max-w-md bg-white rounded-t-2xl px-5 pt-4 pb-6" onClick={(e) => e.stopPropagation()}>
@@ -438,9 +509,21 @@ function ModaleDispositivi({ soggiorno, dispositivi, onChiudi }) {
           </div>
         )}
 
-        <p className="text-xs text-stone-400 mt-4">
-          Limite massimo 2 dispositivi per codice — il terzo tentativo viene bloccato automaticamente dal sistema.
+        <p className="text-xs text-stone-400 mt-4 mb-3">
+          Limite massimo 2 dispositivi per codice. Se un ospite risulta bloccato pur avendo usato sempre lo stesso telefono
+          (capita se il browser cancella i propri dati, o con reti/browser che ne generano uno nuovo ad ogni visita),
+          puoi azzerare qui il conteggio: il prossimo accesso verrà autorizzato come dispositivo nuovo.
         </p>
+        {dispositivi.length > 0 && (
+          <button
+            type="button"
+            onClick={resettaDispositivi}
+            disabled={resetIn}
+            className="w-full text-sm font-medium text-red-600 border border-red-200 rounded-lg py-2.5 disabled:opacity-60"
+          >
+            {resetIn ? 'Reset in corso...' : 'Reset dispositivi'}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -455,6 +538,7 @@ function generaCodiceSoggiorno() {
 
 function ModaleNuovoSoggiorno({ propertyId, onChiudi, onCreato }) {
   const { supabase } = useOspitely();
+  const [nomeOspite, setNomeOspite] = useState('');
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
   const [invio, setInvio] = useState(false);
@@ -473,6 +557,7 @@ function ModaleNuovoSoggiorno({ propertyId, onChiudi, onCreato }) {
       const { error } = await supabase.from('soggiorni').insert({
         property_id: propertyId,
         codice: generaCodiceSoggiorno(),
+        nome_ospite: nomeOspite.trim() || null,
         data_checkin: checkin,
         data_checkout: checkout,
       });
@@ -499,6 +584,11 @@ function ModaleNuovoSoggiorno({ propertyId, onChiudi, onCreato }) {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-lg text-stone-900">Nuovo soggiorno</h2>
           <button type="button" onClick={onChiudi}><X size={20} className="text-stone-400" /></button>
+        </div>
+
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-stone-700 mb-1.5">Nome ospite <span className="text-stone-400 font-normal">(facoltativo)</span></label>
+          <input className={stileInput} placeholder="Es. Mario Rossi" value={nomeOspite} onChange={(e) => setNomeOspite(e.target.value)} />
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-3">
@@ -613,15 +703,51 @@ function SezioneSegnalazioni() {
   useEffect(() => { carica(); }, [carica]);
 
   const filtrati = alerts.filter((a) => {
+    if (a.archiviato) return false;
     if (filtro === 'non_lette') return !a.letto;
     if (filtro === 'urgente' || filtro === 'non_urgente') return a.tipo === filtro;
     return true;
   });
+  const archiviate = alerts.filter((a) => a.archiviato);
 
   async function segnaComeLetta(id) {
     await supabase.from('alerts').update({ letto: true }).eq('id', id);
     setAlerts((a) => a.map((x) => (x.id === id ? { ...x, letto: true } : x)));
     setDettaglioAperto((d) => (d?.id === id ? { ...d, letto: true } : d));
+  }
+
+  async function archivia(id) {
+    await supabase.from('alerts').update({ archiviato: true }).eq('id', id);
+    setAlerts((a) => a.map((x) => (x.id === id ? { ...x, archiviato: true } : x)));
+    setDettaglioAperto(null);
+  }
+
+  function linkContattoOspite(a) {
+    if (!a.telefono_ospite) return null;
+    const numero = a.telefono_ospite.replace(/[^\d+]/g, '');
+    return a.canale_scelto === 'whatsapp' ? `https://wa.me/${numero.replace('+', '')}` : `tel:${numero}`;
+  }
+
+  function CardAlert({ a }) {
+    return (
+      <button
+        type="button"
+        onClick={() => setDettaglioAperto(a)}
+        className={`w-full text-left bg-white rounded-xl border p-3.5 ${a.letto ? 'border-stone-200' : 'border-[#D9653D]'}`}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <span className={`text-xs font-medium ${a.tipo === 'urgente' ? 'text-red-600' : 'text-stone-500'}`}>
+            {a.tipo === 'urgente' ? '🚨 Urgente' : 'ℹ️ Non urgente'}
+          </span>
+          {!a.letto && <span className="w-2 h-2 rounded-full bg-[#D9653D]" />}
+        </div>
+        <p className="text-sm text-stone-800 truncate">{a.testo}</p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-xs text-stone-400">{formattaDataOra(a.created_at)}</p>
+          {a.telefono_ospite && <p className="text-xs text-teal-700 font-medium">📞 {a.telefono_ospite}</p>}
+        </div>
+      </button>
+    );
   }
 
   return (
@@ -653,24 +779,12 @@ function SezioneSegnalazioni() {
       )}
 
       <div className="space-y-2">
-        {filtrati.map((a) => (
-          <button
-            key={a.id}
-            type="button"
-            onClick={() => setDettaglioAperto(a)}
-            className={`w-full text-left bg-white rounded-xl border p-3.5 ${a.letto ? 'border-stone-200' : 'border-[#D9653D]'}`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className={`text-xs font-medium ${a.tipo === 'urgente' ? 'text-red-600' : 'text-stone-500'}`}>
-                {a.tipo === 'urgente' ? '🚨 Urgente' : 'ℹ️ Non urgente'}
-              </span>
-              {!a.letto && <span className="w-2 h-2 rounded-full bg-[#D9653D]" />}
-            </div>
-            <p className="text-sm text-stone-800 truncate">{a.testo}</p>
-            <p className="text-xs text-stone-400 mt-1">{formattaDataOra(a.created_at)}</p>
-          </button>
-        ))}
+        {filtrati.map((a) => <CardAlert key={a.id} a={a} />)}
       </div>
+
+      {archiviate.length > 0 && (
+        <SezioneArchiviata titolo={`Archiviate (${archiviate.length})`} elementi={archiviate} render={(a) => <CardAlert key={a.id} a={a} />} />
+      )}
 
       {dettaglioAperto && (
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-20" onClick={() => setDettaglioAperto(null)}>
@@ -683,13 +797,32 @@ function SezioneSegnalazioni() {
             </div>
             <p className="text-stone-800 mb-2">{dettaglioAperto.testo}</p>
             <p className="text-xs text-stone-400 mb-4">{formattaDataOra(dettaglioAperto.created_at)}</p>
+
+            {dettaglioAperto.telefono_ospite && (
+              <a
+                href={linkContattoOspite(dettaglioAperto)}
+                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2.5 rounded-lg mb-2 transition-colors"
+              >
+                📞 Contatta ospite · {dettaglioAperto.telefono_ospite}
+              </a>
+            )}
+
             {!dettaglioAperto.letto && (
               <button
                 type="button"
                 onClick={() => segnaComeLetta(dettaglioAperto.id)}
-                className="w-full bg-[#0E3D3C] text-white text-sm font-medium py-2.5 rounded-lg"
+                className="w-full bg-[#0E3D3C] text-white text-sm font-medium py-2.5 rounded-lg mb-2"
               >
                 Segna come letta
+              </button>
+            )}
+            {!dettaglioAperto.archiviato && (
+              <button
+                type="button"
+                onClick={() => archivia(dettaglioAperto.id)}
+                className="w-full border border-stone-300 text-stone-700 text-sm font-medium py-2.5 rounded-lg"
+              >
+                Archivia
               </button>
             )}
           </div>
@@ -702,11 +835,11 @@ function SezioneSegnalazioni() {
 // ============================================================
 // Account e abbonamento (menu secondario)
 // ============================================================
-function PannelloAccount({ onChiudi }) {
-  const { profiloHost, sessione, strutturaAttiva, esci } = useOspitely();
+function PannelloAccount({ onChiudi, apriIniziale = false }) {
+  const { profiloHost, sessione, strutture, strutturaAttivaId, impostaStrutturaAttiva, esci } = useOspitely();
   const [caricamentoPortale, setCaricamentoPortale] = useState(false);
   const [erroreP, setErroreP] = useState(null);
-  const [mostraAggiungiStruttura, setMostraAggiungiStruttura] = useState(false);
+  const [mostraAggiungiStruttura, setMostraAggiungiStruttura] = useState(apriIniziale);
 
   async function apriPortaleAbbonamento() {
     setCaricamentoPortale(true);
@@ -752,8 +885,27 @@ function PannelloAccount({ onChiudi }) {
         <p className="text-sm text-stone-500 mb-1">Email</p>
         <p className="text-stone-800 mb-4">{profiloHost?.email}</p>
 
-        <p className="text-sm text-stone-500 mb-1">Struttura attiva</p>
-        <p className="text-stone-800 mb-4">{strutturaAttiva?.nome_struttura} · {strutturaAttiva?.numero_camere} camere</p>
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-sm text-stone-500">Le tue strutture</p>
+          <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${profiloHost?.is_multi_struttura ? 'bg-teal-50 text-teal-800' : 'bg-stone-100 text-stone-500'}`}>
+            {profiloHost?.is_multi_struttura ? 'Multi-struttura' : 'Struttura singola'}
+          </span>
+        </div>
+        <div className="space-y-1.5 mb-4">
+          {strutture.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => impostaStrutturaAttiva(s.id)}
+              className={`w-full text-left flex items-center justify-between rounded-lg px-3 py-2.5 text-sm border ${
+                s.id === strutturaAttivaId ? 'border-teal-600/30 bg-teal-50' : 'border-stone-200 bg-white'
+              }`}
+            >
+              <span className={s.id === strutturaAttivaId ? 'font-medium text-teal-800' : 'text-stone-700'}>{s.nome_struttura}</span>
+              <span className="text-xs text-stone-400">{s.numero_camere} camere</span>
+            </button>
+          ))}
+        </div>
 
         {erroreP && <p className="text-sm text-red-600 mb-2">{erroreP}</p>}
 

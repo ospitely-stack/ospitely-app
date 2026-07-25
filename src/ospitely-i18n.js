@@ -25,6 +25,7 @@ const TRADUZIONI = {
     nonUrgenteTitolo: '✉️ Scrivi un messaggio',
     nonUrgenteSottotitolo: 'L\'host lo vede quando può',
     placeholderDescrizione: 'Descrivi brevemente...',
+    placeholderTelefono: 'Il tuo numero (facoltativo, per essere richiamato)',
     whatsapp: 'WhatsApp',
     chiama: 'Chiama',
     sms: 'SMS',
@@ -48,6 +49,7 @@ const TRADUZIONI = {
     nonUrgenteTitolo: '✉️ Send a message',
     nonUrgenteSottotitolo: 'The host will see it when they can',
     placeholderDescrizione: 'Briefly describe...',
+    placeholderTelefono: 'Your number (optional, so we can call you back)',
     whatsapp: 'WhatsApp',
     chiama: 'Call',
     sms: 'SMS',
@@ -71,6 +73,7 @@ const TRADUZIONI = {
     nonUrgenteTitolo: '✉️ Envoyer un message',
     nonUrgenteSottotitolo: 'L\'hôte le verra dès que possible',
     placeholderDescrizione: 'Décrivez brièvement...',
+    placeholderTelefono: 'Votre numéro (facultatif, pour être rappelé)',
     whatsapp: 'WhatsApp',
     chiama: 'Appeler',
     sms: 'SMS',
@@ -94,6 +97,7 @@ const TRADUZIONI = {
     nonUrgenteTitolo: '✉️ Nachricht schreiben',
     nonUrgenteSottotitolo: 'Der Gastgeber sieht sie, sobald er kann',
     placeholderDescrizione: 'Kurz beschreiben...',
+    placeholderTelefono: 'Deine Nummer (optional, für einen Rückruf)',
     whatsapp: 'WhatsApp',
     chiama: 'Anrufen',
     sms: 'SMS',
@@ -103,6 +107,13 @@ const TRADUZIONI = {
 };
 
 const LINGUE_SUPPORTATE = Object.keys(TRADUZIONI); // ['it', 'en', 'fr', 'de']
+
+export const LINGUE_ETICHETTE = [
+  { codice: 'it', etichetta: 'Italiano', bandiera: '🇮🇹' },
+  { codice: 'en', etichetta: 'English', bandiera: '🇬🇧' },
+  { codice: 'fr', etichetta: 'Français', bandiera: '🇫🇷' },
+  { codice: 'de', etichetta: 'Deutsch', bandiera: '🇩🇪' },
+];
 
 /**
  * Rileva la lingua del browser dell'ospite tra quelle supportate.
