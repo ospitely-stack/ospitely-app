@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Home, CalendarDays, Bell, UserCog, ChevronDown, Plus, Copy, Check,
-  X, AlertCircle, Loader2, QrCode, LogOut, Smartphone,
+  X, AlertCircle, Loader2, QrCode, LogOut, Smartphone, MessageCircle, Phone,
 } from 'lucide-react';
 import { useOspitely } from './ospitely-app-context.jsx';
 import FormOnboardingStruttura from './ospitely-onboarding-form.jsx';
@@ -727,10 +727,12 @@ function SezioneSegnalazioni() {
     setDettaglioAperto(null);
   }
 
-  function linkContattoOspite(a) {
+  function linkContattoOspite(a, canale) {
     if (!a.telefono_ospite) return null;
     const numero = a.telefono_ospite.replace(/[^\d+]/g, '');
-    return a.canale_scelto === 'whatsapp' ? `https://wa.me/${numero.replace('+', '')}` : `tel:${numero}`;
+    if (canale === 'whatsapp') return `https://wa.me/${numero.replace('+', '')}`;
+    if (canale === 'sms') return `sms:${numero}`;
+    return `tel:${numero}`;
   }
 
   function riferimentoOspite(a) {
@@ -819,12 +821,29 @@ function SezioneSegnalazioni() {
             <p className="text-xs text-stone-400 mb-4">{formattaDataOra(dettaglioAperto.created_at)}</p>
 
             {dettaglioAperto.telefono_ospite && (
-              <a
-                href={linkContattoOspite(dettaglioAperto)}
-                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2.5 rounded-lg mb-2 transition-colors"
-              >
-                📞 Contatta ospite · {dettaglioAperto.telefono_ospite}
-              </a>
+              <div className="mb-2">
+                <p className="text-xs text-stone-500 mb-1.5">Contatta l'ospite · {dettaglioAperto.telefono_ospite}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <a
+                    href={linkContattoOspite(dettaglioAperto, 'whatsapp')}
+                    className="flex flex-col items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium py-2.5 rounded-lg transition-colors"
+                  >
+                    <MessageCircle size={16} /> WhatsApp
+                  </a>
+                  <a
+                    href={linkContattoOspite(dettaglioAperto, 'chiamata')}
+                    className="flex flex-col items-center justify-center gap-1 bg-[#0E3D3C] hover:bg-[#0A2E2D] text-white text-xs font-medium py-2.5 rounded-lg transition-colors"
+                  >
+                    <Phone size={16} /> Chiama
+                  </a>
+                  <a
+                    href={linkContattoOspite(dettaglioAperto, 'sms')}
+                    className="flex flex-col items-center justify-center gap-1 border border-stone-300 text-stone-700 text-xs font-medium py-2.5 rounded-lg hover:bg-stone-50 transition-colors"
+                  >
+                    SMS
+                  </a>
+                </div>
+              </div>
             )}
 
             {!dettaglioAperto.letto && (

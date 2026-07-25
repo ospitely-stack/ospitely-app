@@ -865,10 +865,22 @@ export default function FormOnboardingStruttura() {
                               copia[i] = { ...copia[i], nota: e.target.value };
                               setConsigli(copia);
                             }} />
+                          <input className={stileInput} placeholder="Link sito/pagina (facoltativo)"
+                            value={c.link || ''} onChange={(e) => {
+                              const copia = [...consigli];
+                              copia[i] = { ...copia[i], link: e.target.value };
+                              setConsigli(copia);
+                            }} />
+                          <input className={stileInput} placeholder="Link Google Maps (facoltativo)"
+                            value={c.posizione || ''} onChange={(e) => {
+                              const copia = [...consigli];
+                              copia[i] = { ...copia[i], posizione: e.target.value };
+                              setConsigli(copia);
+                            }} />
                         </RigaRipetibile>
                       ))}
                       <BottoneAggiungi testo="Aggiungi consiglio"
-                        onClick={() => setConsigli([...consigli, { categoria: '', nome: '', nota: '' }])} />
+                        onClick={() => setConsigli([...consigli, { categoria: '', nome: '', nota: '', link: '', posizione: '' }])} />
                       <BottoneSalva sezioneId="consigli" />
                     </>
                   )}

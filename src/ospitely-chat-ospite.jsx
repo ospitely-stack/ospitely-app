@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, AlertCircle, MessageCircleWarning, Phone, MessageCircle, X, Loader2, Globe, Wifi, Clock, UtensilsCrossed, MapPin, ScrollText, MessageSquareText } from 'lucide-react';
+import { Send, AlertCircle, MessageCircleWarning, Phone, MessageCircle, X, Loader2, Globe, Wifi, Clock, UtensilsCrossed, MapPin, ScrollText, MessageSquareText, ArrowLeft, Navigation, Link as LinkIcon } from 'lucide-react';
 import { rilevaLinguaInterfaccia, creaTraduttore, LINGUE_ETICHETTE, LINGUE_RTL } from './ospitely-i18n.js';
 
 // ============================================================
@@ -83,6 +83,15 @@ function testoLocalizzato(profilo, lingua, campo) {
     return profilo.traduzioni[lingua][campo];
   }
   return profilo?.[campo];
+}
+
+function vociConsigli(categoria, profilo, lingua) {
+  const consigliLocalizzati = lingua !== 'it' && profilo?.traduzioni?.[lingua]?.consigli_locali
+    ? profilo.traduzioni[lingua].consigli_locali
+    : (profilo?.consigli_locali || []);
+  if (categoria === 'doveMangiare') return consigliLocalizzati.filter((c) => c.categoria === 'ristorante' || c.categoria === 'bar');
+  if (categoria === 'puntiInteresse') return consigliLocalizzati.filter((c) => c.categoria === 'attrazione');
+  return [];
 }
 
 function costruisciRispostaRapida(id, profilo, lingua, t) {
@@ -293,11 +302,23 @@ export default function ChatOspite({ slug }) {
           <div className="absolute -right-2 top-6 w-16 h-16 rounded-full bg-[#E8A24A]/20" />
         </div>
         <div className="relative flex items-start justify-between">
-          <div>
-            <p className="text-[11px] font-medium tracking-[0.16em] text-teal-100/80 uppercase">
-              {vista === 'home' ? 'Ospitely' : 'Il tuo assistente'}
-            </p>
-            <h1 className="font-display text-xl text-white mt-0.5">{nomeLeggibileDaSlug(slug)}</h1>
+          <div className="flex items-center gap-2">
+            {vista === 'chat' && (
+              <button
+                type="button"
+                onClick={() => setVista('home')}
+                aria-label="Torna alla home"
+                className="text-white/90 bg-white/10 hover:bg-white/15 rounded-full p-1.5 transition-colors shrink-0"
+              >
+                <ArrowLeft size={16} />
+              </button>
+            )}
+            <div>
+              <p className="text-[11px] font-medium tracking-[0.16em] text-teal-100/80 uppercase">
+                {vista === 'home' ? 'Ospitely' : 'Il tuo assistente'}
+              </p>
+              <h1 className="font-display text-xl text-white mt-0.5">{nomeLeggibileDaSlug(slug)}</h1>
+            </div>
           </div>
           <SelettoreLingua lingua={lingua} onCambia={setLingua} />
         </div>
@@ -383,8 +404,10 @@ export default function ChatOspite({ slug }) {
 
       {rispostaRapidaAperta && (
         <ModaleRispostaRapida
+          id={rispostaRapidaAperta}
           titolo={t(RISPOSTE_RAPIDE.find((r) => r.id === rispostaRapidaAperta)?.chiaveEtichetta) ?? ''}
           testo={costruisciRispostaRapida(rispostaRapidaAperta, profilo, lingua, t)}
+          voci={(rispostaRapidaAperta === 'doveMangiare' || rispostaRapidaAperta === 'puntiInteresse') ? vociConsigli(rispostaRapidaAperta, profilo, lingua) : null}
           t={t}
           lingua={lingua}
           onChiudi={() => setRispostaRapidaAperta(null)}
@@ -410,10 +433,10 @@ export default function ChatOspite({ slug }) {
 // Modale di risposta rapida — mostra il contenuto istantaneo
 // (nessuna chiamata a Claude, nessun messaggio consumato)
 // ============================================================
-function ModaleRispostaRapida({ titolo, testo, t, lingua, onChiudi, onVaiInChat }) {
+function ModaleRispostaRapida({ titolo, testo, voci, t, lingua, onChiudi, onVaiInChat }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-20" onClick={onChiudi}>
-      <div dir={LINGUE_RTL.includes(lingua) ? 'rtl' : 'ltr'} className="w-full max-w-md bg-white rounded-t-3xl px-5 pt-4 pb-6" onClick={(e) => e.stopPropagation()}>
+      <div dir={LINGUE_RTL.includes(lingua) ? 'rtl' : 'ltr'} className="w-full max-w-md bg-white rounded-t-3xl px-5 pt-4 pb-6 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="w-10 h-1 bg-stone-200 rounded-full mx-auto mb-4" />
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg text-stone-900">{titolo}</h2>
@@ -421,7 +444,36 @@ function ModaleRispostaRapida({ titolo, testo, t, lingua, onChiudi, onVaiInChat 
             <X size={20} />
           </button>
         </div>
-        <p className="text-[15px] text-stone-700 whitespace-pre-line leading-relaxed mb-5">{testo}</p>
+
+        {voci && voci.length > 0 ? (
+          <div className="space-y-2.5 mb-5">
+            {voci.map((v, i) => (
+              <div key={i} className="bg-[#F7F5F1] rounded-2xl p-3.5">
+                <p className="font-medium text-stone-800">{v.nome}</p>
+                {v.nota && <p className="text-sm text-stone-500 mt-0.5">{v.nota}</p>}
+                {(v.link || v.posizione) && (
+                  <div className="flex gap-2 mt-2.5">
+                    {v.link && (
+                      <a href={v.link} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs font-medium text-[#1D5C56] border border-[#1D5C56]/25 rounded-full px-3 py-1.5 hover:bg-[#1D5C56]/5 transition-colors">
+                        <LinkIcon size={12} /> {t('etichettaSito')}
+                      </a>
+                    )}
+                    {v.posizione && (
+                      <a href={v.posizione} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs font-medium text-white bg-[#D9653D] hover:bg-[#C2552F] rounded-full px-3 py-1.5 transition-colors">
+                        <Navigation size={12} /> {t('etichettaIndicazioni')}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[15px] text-stone-700 whitespace-pre-line leading-relaxed mb-5">{testo}</p>
+        )}
+
         <button
           type="button"
           onClick={onVaiInChat}

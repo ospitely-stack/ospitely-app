@@ -45,6 +45,7 @@ const TRADUZIONI = {
     faiDomandaChat: 'Fai una domanda in chat',
     bottoneWifi: 'WiFi', bottoneOrari: 'Orari', bottoneDoveMangiare: 'Dove mangiare',
     bottonePuntiInteresse: 'Punti di interesse', bottoneContatti: 'Contatti', bottoneRegole: 'Regole della casa',
+    etichettaSito: 'Sito', etichettaIndicazioni: 'Indicazioni',
   },
   en: {
     benvenutoTitolo: 'Welcome',
@@ -83,6 +84,7 @@ const TRADUZIONI = {
     faiDomandaChat: 'Ask in chat',
     bottoneWifi: 'WiFi', bottoneOrari: 'Hours', bottoneDoveMangiare: 'Where to eat',
     bottonePuntiInteresse: 'Points of interest', bottoneContatti: 'Contacts', bottoneRegole: 'House rules',
+    etichettaSito: 'Website', etichettaIndicazioni: 'Directions',
   },
   fr: {
     benvenutoTitolo: 'Bienvenue',
@@ -121,6 +123,7 @@ const TRADUZIONI = {
     faiDomandaChat: 'Poser une question dans le chat',
     bottoneWifi: 'WiFi', bottoneOrari: 'Horaires', bottoneDoveMangiare: 'Où manger',
     bottonePuntiInteresse: 'Points d\'intérêt', bottoneContatti: 'Contacts', bottoneRegole: 'Règles de la maison',
+    etichettaSito: 'Site', etichettaIndicazioni: 'Itinéraire',
   },
   de: {
     benvenutoTitolo: 'Willkommen',
@@ -159,6 +162,7 @@ const TRADUZIONI = {
     faiDomandaChat: 'Frag im Chat',
     bottoneWifi: 'WLAN', bottoneOrari: 'Öffnungszeiten', bottoneDoveMangiare: 'Essen gehen',
     bottonePuntiInteresse: 'Sehenswürdigkeiten', bottoneContatti: 'Kontakte', bottoneRegole: 'Hausregeln',
+    etichettaSito: 'Website', etichettaIndicazioni: 'Route',
   },
   es: {
     benvenutoTitolo: 'Bienvenido',
@@ -197,6 +201,7 @@ const TRADUZIONI = {
     faiDomandaChat: 'Preguntar en el chat',
     bottoneWifi: 'WiFi', bottoneOrari: 'Horarios', bottoneDoveMangiare: 'Dónde comer',
     bottonePuntiInteresse: 'Puntos de interés', bottoneContatti: 'Contactos', bottoneRegole: 'Normas de la casa',
+    etichettaSito: 'Sitio web', etichettaIndicazioni: 'Cómo llegar',
   },
   zh: {
     benvenutoTitolo: '欢迎',
@@ -235,6 +240,7 @@ const TRADUZIONI = {
     faiDomandaChat: '在聊天中提问',
     bottoneWifi: 'WiFi', bottoneOrari: '时间', bottoneDoveMangiare: '用餐地点',
     bottonePuntiInteresse: '周边景点', bottoneContatti: '联系方式', bottoneRegole: '房屋规则',
+    etichettaSito: '网站', etichettaIndicazioni: '路线',
   },
   ar: {
     benvenutoTitolo: 'أهلاً بك',
@@ -273,6 +279,7 @@ const TRADUZIONI = {
     faiDomandaChat: 'اسأل في المحادثة',
     bottoneWifi: 'واي فاي', bottoneOrari: 'المواعيد', bottoneDoveMangiare: 'أين تأكل',
     bottonePuntiInteresse: 'أماكن الاهتمام', bottoneContatti: 'جهات الاتصال', bottoneRegole: 'قواعد المنزل',
+    etichettaSito: 'الموقع الإلكتروني', etichettaIndicazioni: 'الاتجاهات',
   },
 };
 
