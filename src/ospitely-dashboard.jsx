@@ -818,6 +818,9 @@ function SezioneSegnalazioni() {
               <p className="text-sm font-medium text-teal-800 mb-1">{riferimentoOspite(dettaglioAperto)}</p>
             )}
             <p className="text-stone-800 mb-2">{dettaglioAperto.testo}</p>
+            {dettaglioAperto.testo_originale && (
+              <p className="text-xs text-stone-400 italic mb-2">Originale: "{dettaglioAperto.testo_originale}"</p>
+            )}
             <p className="text-xs text-stone-400 mb-4">{formattaDataOra(dettaglioAperto.created_at)}</p>
 
             {dettaglioAperto.telefono_ospite && (

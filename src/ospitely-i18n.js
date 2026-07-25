@@ -46,6 +46,7 @@ const TRADUZIONI = {
     bottoneWifi: 'WiFi', bottoneOrari: 'Orari', bottoneDoveMangiare: 'Dove mangiare',
     bottonePuntiInteresse: 'Punti di interesse', bottoneContatti: 'Contatti', bottoneRegole: 'Regole della casa',
     etichettaSito: 'Sito', etichettaIndicazioni: 'Indicazioni',
+    avvisoTraduzione: 'Il tuo messaggio verrà tradotto in italiano per il tuo host. La risposta potrebbe arrivarti in inglese o in un\'altra lingua che l\'host conosce — magari proprio la tua.',
   },
   en: {
     benvenutoTitolo: 'Welcome',
@@ -85,6 +86,7 @@ const TRADUZIONI = {
     bottoneWifi: 'WiFi', bottoneOrari: 'Hours', bottoneDoveMangiare: 'Where to eat',
     bottonePuntiInteresse: 'Points of interest', bottoneContatti: 'Contacts', bottoneRegole: 'House rules',
     etichettaSito: 'Website', etichettaIndicazioni: 'Directions',
+    avvisoTraduzione: 'Your message will be translated into Italian for your host. The reply might come in English or another language your host knows — maybe even yours.',
   },
   fr: {
     benvenutoTitolo: 'Bienvenue',
@@ -124,6 +126,7 @@ const TRADUZIONI = {
     bottoneWifi: 'WiFi', bottoneOrari: 'Horaires', bottoneDoveMangiare: 'Où manger',
     bottonePuntiInteresse: 'Points d\'intérêt', bottoneContatti: 'Contacts', bottoneRegole: 'Règles de la maison',
     etichettaSito: 'Site', etichettaIndicazioni: 'Itinéraire',
+    avvisoTraduzione: 'Votre message sera traduit en italien pour votre hôte. La réponse pourrait arriver en anglais ou dans une autre langue que l\'hôte connaît — peut-être même la vôtre.',
   },
   de: {
     benvenutoTitolo: 'Willkommen',
@@ -163,6 +166,7 @@ const TRADUZIONI = {
     bottoneWifi: 'WLAN', bottoneOrari: 'Öffnungszeiten', bottoneDoveMangiare: 'Essen gehen',
     bottonePuntiInteresse: 'Sehenswürdigkeiten', bottoneContatti: 'Kontakte', bottoneRegole: 'Hausregeln',
     etichettaSito: 'Website', etichettaIndicazioni: 'Route',
+    avvisoTraduzione: 'Deine Nachricht wird für deinen Gastgeber ins Italienische übersetzt. Die Antwort kommt vielleicht auf Englisch oder in einer anderen Sprache, die der Gastgeber kennt — womöglich sogar deiner.',
   },
   es: {
     benvenutoTitolo: 'Bienvenido',
@@ -202,6 +206,7 @@ const TRADUZIONI = {
     bottoneWifi: 'WiFi', bottoneOrari: 'Horarios', bottoneDoveMangiare: 'Dónde comer',
     bottonePuntiInteresse: 'Puntos de interés', bottoneContatti: 'Contactos', bottoneRegole: 'Normas de la casa',
     etichettaSito: 'Sitio web', etichettaIndicazioni: 'Cómo llegar',
+    avvisoTraduzione: 'Tu mensaje se traducirá al italiano para tu anfitrión. La respuesta podría llegar en inglés o en otro idioma que el anfitrión conozca — quizás incluso el tuyo.',
   },
   zh: {
     benvenutoTitolo: '欢迎',
@@ -241,6 +246,7 @@ const TRADUZIONI = {
     bottoneWifi: 'WiFi', bottoneOrari: '时间', bottoneDoveMangiare: '用餐地点',
     bottonePuntiInteresse: '周边景点', bottoneContatti: '联系方式', bottoneRegole: '房屋规则',
     etichettaSito: '网站', etichettaIndicazioni: '路线',
+    avvisoTraduzione: '您的消息将被翻译成意大利语发送给房东。回复可能是英语或房东懂的其他语言 —— 也可能正好是您的语言。',
   },
   ar: {
     benvenutoTitolo: 'أهلاً بك',
@@ -280,6 +286,7 @@ const TRADUZIONI = {
     bottoneWifi: 'واي فاي', bottoneOrari: 'المواعيد', bottoneDoveMangiare: 'أين تأكل',
     bottonePuntiInteresse: 'أماكن الاهتمام', bottoneContatti: 'جهات الاتصال', bottoneRegole: 'قواعد المنزل',
     etichettaSito: 'الموقع الإلكتروني', etichettaIndicazioni: 'الاتجاهات',
+    avvisoTraduzione: 'ستتم ترجمة رسالتك إلى الإيطالية لصاحب العقار. قد يصلك الرد بالإنجليزية أو بلغة أخرى يعرفها المضيف — وربما تكون لغتك أنت.',
   },
 };
 

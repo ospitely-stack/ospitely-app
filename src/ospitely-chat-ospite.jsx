@@ -422,6 +422,7 @@ export default function ChatOspite({ slug }) {
           soggiornoId={soggiornoId}
           testoIniziale={mostraSegnalazione.testoPrecompilato}
           t={t}
+          lingua={lingua}
           onChiudi={() => setMostraSegnalazione(false)}
         />
       )}
@@ -708,7 +709,7 @@ function BarraInput({
 // ============================================================
 // Modale "Segnala un problema" — urgente / non urgente + canale
 // ============================================================
-function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onChiudi }) {
+function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, lingua, onChiudi }) {
   const [tipo, setTipo] = useState(null); // 'urgente' | 'non_urgente'
   const [testo, setTesto] = useState(testoIniziale);
   const [telefono, setTelefono] = useState('');
@@ -729,7 +730,7 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
         headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
         body: JSON.stringify({
           slug, soggiorno_id: soggiornoId, device_id: deviceId,
-          tipo, canale_scelto: canale, testo: testo.trim(), telefono_ospite: telefono.trim() || null,
+          tipo, canale_scelto: canale, testo: testo.trim(), telefono_ospite: telefono.trim() || null, lingua,
         }),
       });
       const dati = await res.json();
@@ -796,6 +797,12 @@ function ModaleSegnalazione({ slug, deviceId, soggiornoId, testoIniziale, t, onC
               onChange={(e) => setTelefono(e.target.value)}
             />
             {errore && <p className="mt-2 text-sm text-red-600">{errore}</p>}
+
+            {lingua !== 'it' && (
+              <p className="mt-3 text-xs text-stone-500 bg-[#F7F5F1] rounded-xl px-3 py-2.5 flex items-start gap-1.5">
+                <Globe size={13} className="mt-0.5 shrink-0" /> {t('avvisoTraduzione')}
+              </p>
+            )}
 
             <div className="mt-4 space-y-2">
               <button

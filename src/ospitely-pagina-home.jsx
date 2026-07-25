@@ -41,7 +41,7 @@ function Hero() {
   return (
     <section className="max-w-3xl mx-auto px-6 pt-12 pb-16 text-center">
       <span className="inline-block text-xs font-medium bg-[#FCEEDF] text-[#B4472B] px-3 py-1 rounded-full mb-5">
-        Per B&B, hotel e affitti turistici
+        Per Hotel, B&B, case vacanze e affitti turistici
       </span>
       <h1 className="font-display text-3xl sm:text-4xl tracking-tight mb-4">
         Il tuo assistente per gli ospiti, che parla tutte le lingue e non dorme mai
@@ -115,7 +115,7 @@ function Funzionalita() {
   const voci = [
     { Icona: Globe2, titolo: 'Multilingua reale', testo: 'L\'ospite scrive nella sua lingua, l\'assistente capisce e risponde di conseguenza. Nessuna traduzione da gestire tu.' },
     { Icona: QrCode, titolo: 'Zero app da installare', testo: 'Un link, un QR code. Funziona nel browser del telefono, come una pagina web qualsiasi.' },
-    { Icona: MessageCircleWarning, titolo: 'Segnalazioni dirette', testo: 'Urgenze e richieste arrivano dove già controlli: WhatsApp, SMS o una chiamata diretta.' },
+    { Icona: MessageCircleWarning, titolo: 'Segnalazioni dirette, già tradotte', testo: 'Urgenze e richieste arrivano dove già controlli — WhatsApp, SMS o chiamata — tradotte in italiano, qualunque lingua scriva l\'ospite.' },
     { Icona: ShieldCheck, titolo: 'Accesso solo ai tuoi ospiti', testo: 'Un codice legato alle date reali del soggiorno — non a chiunque trovi il link.' },
     { Icona: Sparkles, titolo: 'Sempre coerente', testo: 'Le stesse informazioni, dette con lo stesso tono, ogni volta — anche quando tu non ci sei.' },
     { Icona: Clock, titolo: 'Disponibile 24/7', testo: 'Le domande fuori orario non aspettano più la mattina dopo.' },
